@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -14,11 +15,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.ancandroid.ui.theme.ANCAndroidTheme
-import com.example.ancandroid.views.SermonVideosView
+import androidx.navigation.compose.rememberNavController
+import com.example.ancandroid.navigation.AppNavigation
+import com.example.ancandroid.navigation.Screens
+import com.example.ancandroid.views.ChurchBottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -28,6 +30,8 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
+            val navController = rememberNavController()
+
             ANCAndroidTheme {
                 Scaffold(
                     topBar = {
@@ -40,9 +44,27 @@ class MainActivity : ComponentActivity() {
                             )
                         )
                     },
+                    bottomBar = {
+                        ChurchBottomNavigationBar(
+                            onSermonsClicked = {
+                                navController.navigate(Screens.SermonVideosScreen.route)
+                            },
+                            onHomeClicked = {
+                                navController.navigate(Screens.HomeScreen.route)
+                            }
+                        )
+                    },
                     modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
-                    SermonVideosView(modifier = Modifier.padding(innerPadding))
+                ) { paddingValues ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                    ) {
+                        AppNavigation(
+                            navHostController = navController
+                        )
+                    }
                 }
             }
         }
