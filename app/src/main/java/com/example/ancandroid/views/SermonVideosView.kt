@@ -4,59 +4,37 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.ancandroid.data.LoadingState
-import com.example.ancandroid.data.ChurchAPI
-import com.example.ancandroid.data.Video
+import com.example.ancandroid.data.YouTubeVideo
 import com.example.ancandroid.openUrlInExternalBrowser
-import kotlinx.coroutines.IO
+import com.example.ancandroid.viewmodel.VideosViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SermonVideosView() {
-    val videos = remember { mutableStateOf<List<YouTubeVideo>>(listOf()) }
-    var loadingState: LoadingState by remember { mutableStateOf(LoadingState.Loading) }
+fun SermonVideosView(modifier: Modifier) {
+    val videosViewModel: VideosViewModel = koinViewModel()
+    val videosUIState by videosViewModel.videosUIState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            try {
-                ChurchAPI.shared.getVideos().onSuccess {
-                    videos.value = Json.decodeFromString<List<Video>>(it).toYouTubeVideos()
-                    loadingState = LoadingState.Success
-                }.onFailure {
-                    loadingState = LoadingState.Failure
-                }
-            } catch (e: Exception) {
-                println(e)
-                loadingState = LoadingState.Error
-            }
-        }
-    }
-
-    when (loadingState) {
+    when (videosUIState.loadingState) {
         LoadingState.Loading -> {
 //            Text("Loading")
             VideosLoadingView()
         }
 
         LoadingState.Success -> {
-            VideosGrid(videos = videos.value, clickFunc = { openUrlInExternalBrowser("https://youtu.be/${it.videoId}") })
+            VideosGrid(videos = videosUIState.videos, clickFunc = { openUrlInExternalBrowser("https://youtu.be/${it.videoId}") })
         }
 
         LoadingState.Failure -> {
@@ -66,12 +44,6 @@ fun SermonVideosView() {
         LoadingState.Error -> {
             Text("Error")
         }
-    }
-}
-
-fun List<Video>.toYouTubeVideos(): List<YouTubeVideo> {
-    return this.map {
-        YouTubeVideo(it.id, it.title, it.thumbnailUrl)
     }
 }
 
@@ -118,12 +90,6 @@ fun VideosGrid(videos: List<YouTubeVideo>, clickFunc: (YouTubeVideo) -> Unit) {
         )
     }
 }
-
-data class YouTubeVideo(
-    val videoId: String,
-    val title: String,
-    val thumbnailUrl: String
-)
 
 @Composable
 fun VideosLoadingView() {

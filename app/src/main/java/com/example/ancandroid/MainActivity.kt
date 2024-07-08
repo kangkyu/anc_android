@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ANCAndroidTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SermonVideosView()
+                    SermonVideosView(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
