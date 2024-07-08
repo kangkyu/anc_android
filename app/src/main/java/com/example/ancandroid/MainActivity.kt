@@ -1,5 +1,7 @@
 package com.example.ancandroid
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ancandroid.ui.theme.ANCAndroidTheme
+import com.example.ancandroid.views.SermonVideosView
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,28 +23,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             ANCAndroidTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    SermonVideosView()
                 }
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ANCAndroidTheme {
-        Greeting("Android")
+    fun openBrowser(url: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        startActivity(intent)
     }
+
+    companion object {
+        var instance: MainActivity? = null
+            private set
+    }
+}
+
+fun openUrlInExternalBrowser(url: String) {
+    MainActivity.instance?.openBrowser(url)
 }
