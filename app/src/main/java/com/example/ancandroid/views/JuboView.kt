@@ -67,8 +67,8 @@ fun JuboImageView(externalLink: ExternalURL) {
         rotation += rotationChange
         offset += offsetChange
     }
-    Box(
-        Modifier
+    JuboImage(
+        modifier = Modifier
             // apply other transformations like rotation and zoom
             // on the pizza slice emoji
             .graphicsLayer(
@@ -82,16 +82,15 @@ fun JuboImageView(externalLink: ExternalURL) {
             // after offset
             .transformable(state = state)
             .background(MaterialTheme.colorScheme.background)
-            .fillMaxSize()
-    ) {
-        JuboImage(externalLink)
-    }
+            .fillMaxSize(),
+        externalLink = externalLink
+    )
 }
 
 @Composable
-fun JuboImage(externalLink: ExternalURL) {
+fun JuboImage(modifier: Modifier = Modifier, externalLink: ExternalURL) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         externalLink.urls.forEach { url ->
