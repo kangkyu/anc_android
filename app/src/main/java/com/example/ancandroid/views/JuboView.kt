@@ -60,11 +60,9 @@ fun JuboView() {
 fun JuboImageView(externalLink: ExternalURL) {
     // set up all transformation states
     var scale by remember { mutableStateOf(1f) }
-    var rotation by remember { mutableStateOf(0f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     val state = rememberTransformableState { zoomChange, offsetChange, rotationChange ->
         scale *= zoomChange
-        rotation += rotationChange
         offset += offsetChange
     }
     JuboImage(
@@ -74,9 +72,8 @@ fun JuboImageView(externalLink: ExternalURL) {
             .graphicsLayer(
                 scaleX = scale,
                 scaleY = scale,
-                rotationZ = rotation,
-                translationX = offset.x,
-                translationY = offset.y
+                translationX = scale * offset.x,
+                translationY = scale * offset.y
             )
             // add transformable to listen to multitouch transformation events
             // after offset
