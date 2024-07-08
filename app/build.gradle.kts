@@ -73,4 +73,6 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.coil.compose)
+    implementation(libs.bundles.koin)
+    implementation(libs.bundles.compose)
 }
