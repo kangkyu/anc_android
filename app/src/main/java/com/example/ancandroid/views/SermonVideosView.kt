@@ -34,7 +34,12 @@ fun SermonVideosView(modifier: Modifier) {
         }
 
         LoadingState.Success -> {
-            VideosGrid(videos = videosUIState.videos, clickFunc = { openUrlInExternalBrowser("https://youtu.be/${it.videoId}") })
+            VideosGrid(
+                videos = videosUIState.videos,
+                clickFunc = {
+                    openUrlInExternalBrowser("https://youtu.be/${it.videoId}")
+                }
+            )
         }
 
         LoadingState.Failure -> {
