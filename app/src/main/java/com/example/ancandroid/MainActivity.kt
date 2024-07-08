@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.example.ancandroid.ui.theme.ANCAndroidTheme
 import androidx.navigation.compose.rememberNavController
 import com.example.ancandroid.navigation.AppNavigation
@@ -37,7 +38,7 @@ class MainActivity : ComponentActivity() {
                     topBar = {
                         TopAppBar(
                             title = {
-                                Text(text = "ANC Mobile")
+                                Text(text = stringResource(R.string.app_title))
                             },
                             colors =  TopAppBarDefaults.topAppBarColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
@@ -51,6 +52,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onHomeClicked = {
                                 navController.navigate(Screens.HomeScreen.route)
+                            },
+                            onJuboClicked = {
+                                navController.navigate(Screens.JuboImagesScreen.route)
                             }
                         )
                     },

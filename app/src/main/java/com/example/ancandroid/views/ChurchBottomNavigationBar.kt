@@ -2,6 +2,7 @@ package com.example.ancandroid.views
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
@@ -17,7 +18,7 @@ import com.example.ancandroid.navigation.Screens
 
 @Composable
 fun ChurchBottomNavigationBar(
-    onSermonsClicked: () -> Unit, onHomeClicked: () -> Unit
+    onSermonsClicked: () -> Unit, onHomeClicked: () -> Unit, onJuboClicked: () -> Unit
 ) {
     val items = listOf(Screens.HomeScreen, Screens.SermonVideosScreen)
     val selectedItem = remember { mutableStateOf(items[0]) }
@@ -50,6 +51,20 @@ fun ChurchBottomNavigationBar(
                 Icon(
                     imageVector = Icons.Default.Favorite,
                     contentDescription = "Favorite Icon"
+                )
+            }
+        )
+
+        NavigationBarItem(
+            selected = selectedItem.value == Screens.JuboImagesScreen,
+            onClick = {
+                onJuboClicked()
+                selectedItem.value = Screens.JuboImagesScreen
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.AccountBox,
+                    contentDescription = "Account Icon"
                 )
             }
         )
