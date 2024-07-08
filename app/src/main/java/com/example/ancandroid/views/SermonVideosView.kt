@@ -23,7 +23,7 @@ import com.example.ancandroid.viewmodel.VideosViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SermonVideosView(modifier: Modifier) {
+fun SermonVideosView() {
     val videosViewModel: VideosViewModel = koinViewModel()
     val videosUIState by videosViewModel.videosUIState.collectAsStateWithLifecycle()
 
