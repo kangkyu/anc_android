@@ -33,3 +33,10 @@ class ChurchAPI {
         }
     }
 }
+
+enum class LoadingState {
+    Loading,
+    Success,
+    Failure,
+    Error
+}
