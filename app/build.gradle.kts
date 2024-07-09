@@ -76,4 +76,5 @@ dependencies {
     implementation(libs.bundles.koin)
     implementation(libs.bundles.compose)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.ui.text.googlefonts)
 }

@@ -1,5 +1,6 @@
 package com.example.ancandroid.views
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,8 +13,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.ancandroid.data.LoadingState
@@ -56,18 +61,23 @@ fun SermonVideosView() {
 fun VideosGrid(videos: List<YouTubeVideo>, clickFunc: (YouTubeVideo) -> Unit) {
 
     LazyColumn(
-        modifier = Modifier.fillMaxHeight()
+        modifier = Modifier
+            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+            .fillMaxHeight()
+            .padding(horizontal = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(
             items = videos,
             itemContent = { video: YouTubeVideo ->
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start
+                    horizontalAlignment = Alignment.Start,
                 ) {
                     Row(
                         modifier = Modifier
-                            .padding(16.dp)
+                            .background(color = MaterialTheme.colorScheme.surface)
+                            .padding(14.dp)
                             .clickable {
                                 // start VideoActivity and pass the video details
                                 clickFunc(video)
@@ -77,19 +87,18 @@ fun VideosGrid(videos: List<YouTubeVideo>, clickFunc: (YouTubeVideo) -> Unit) {
                         AsyncImage(
                             model = video.thumbnailUrl,
                             contentDescription = video.title,
-                            modifier = Modifier.height(99.dp).width(176.dp),
+                            modifier = Modifier
+                                .height(100.dp)
+                                .width(180.dp)
+                                .clip(MaterialTheme.shapes.small),
                             contentScale = ContentScale.Crop,
                         )
                         Text(
                             text = video.title,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
                         )
                     }
-
-                    HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth().height(1.dp),
-                        color = Color.Black
-                    )
                 }
             }
         )

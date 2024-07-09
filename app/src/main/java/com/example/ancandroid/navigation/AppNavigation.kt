@@ -13,16 +13,16 @@ import com.example.ancandroid.views.SermonVideosView
 fun AppNavigation(navHostController: NavHostController = rememberNavController()) {
     NavHost(
         navController = navHostController,
-        startDestination = Screens.HomeScreen.route
+        startDestination = Screens.SermonVideosScreen.route
     ) {
-        composable(Screens.HomeScreen.route) {
-            ChurchInfoView()
-        }
         composable(Screens.SermonVideosScreen.route) {
             SermonVideosView()
         }
         composable(Screens.JuboImagesScreen.route) {
             JuboView()
+        }
+        composable(Screens.HomeScreen.route) {
+            ChurchInfoView()
         }
     }
 }
