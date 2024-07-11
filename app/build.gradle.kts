@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ancandroid"
+    namespace = "com.anconnuri.ancandroid"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.ancandroid"
+        applicationId = "com.anconnuri.ancandroid"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
