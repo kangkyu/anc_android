@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Video(
-    @SerialName("id")
+    @SerialName("youtube_id")
     val id: String,
     @SerialName("title")
     val title: String,

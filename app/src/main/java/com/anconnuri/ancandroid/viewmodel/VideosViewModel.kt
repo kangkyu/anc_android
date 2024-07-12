@@ -21,11 +21,15 @@ class VideosViewModel(): ViewModel() {
 
     private fun getVideos() {
         videosUIState.value = VideosUIState(loadingState = LoadingState.Loading)
+        val jsonBuilder = Json { ignoreUnknownKeys = true }
         viewModelScope.launch {
             try {
                 ChurchAPI.shared.getVideos().onSuccess { result ->
                     videosUIState.update {
-                        it.copy(loadingState = LoadingState.Success, videos = Json.decodeFromString<List<Video>>(result).toYouTubeVideos())
+                        it.copy(
+                            loadingState = LoadingState.Success,
+                            videos = jsonBuilder.decodeFromString<List<Video>>(result).toYouTubeVideos()
+                        )
                     }
                 }.onFailure { result ->
                     videosUIState.update {

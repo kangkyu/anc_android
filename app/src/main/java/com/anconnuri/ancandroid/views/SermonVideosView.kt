@@ -49,7 +49,7 @@ fun SermonVideosView() {
         }
 
         LoadingState.Error -> {
-            Text("Error")
+            Text("Error ${videosUIState.error}")
         }
     }
 }
