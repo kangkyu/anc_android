@@ -36,12 +36,16 @@ fun SermonVideosView() {
         }
 
         LoadingState.Success -> {
-            VideosGrid(
-                videos = videosUIState.videos,
-                clickFunc = {
-                    openUrlInExternalBrowser("https://youtu.be/${it.videoId}")
-                }
-            )
+            if (videosUIState.videos.isEmpty()) {
+                NoVideos()
+            } else {
+                VideosGrid(
+                    videos = videosUIState.videos,
+                    clickFunc = {
+                        openUrlInExternalBrowser("https://youtu.be/${it.videoId}")
+                    }
+                )
+            }
         }
 
         LoadingState.Failure -> {
@@ -56,7 +60,6 @@ fun SermonVideosView() {
 
 @Composable
 fun VideosGrid(videos: List<YouTubeVideo>, clickFunc: (YouTubeVideo) -> Unit) {
-
     LazyColumn(
         modifier = Modifier
             .background(color = MaterialTheme.colorScheme.surfaceContainer)
@@ -110,5 +113,15 @@ fun VideosLoadingView() {
     ) {
         Text("Loading...")
         //        CircularProgressIndicator()
+    }
+}
+
+@Composable
+fun NoVideos() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("No videos available")
     }
 }
