@@ -1,5 +1,6 @@
 package com.anconnuri.ancandroid.di
 
+import com.anconnuri.ancandroid.utils.TokenManager
 import com.anconnuri.ancandroid.viewmodel.JuboViewModel
 import com.anconnuri.ancandroid.viewmodel.PhoneAuthViewModel
 import com.anconnuri.ancandroid.viewmodel.PrayerViewModel
@@ -15,4 +16,5 @@ val appModules = module {
         viewModel { PhoneAuthViewModel() }
     }
     viewModel { PrayerViewModel() }
+    single { TokenManager(get()) }
 }

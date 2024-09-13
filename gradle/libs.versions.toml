@@ -16,6 +16,7 @@ coilCompose = "2.6.0"
 koin = "3.5.3"
 koinCompose = "3.5.3"
 lifecycle = "2.7.0"
+securityCrypto = "1.1.0-alpha06"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,6 +51,7 @@ compose-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 compose-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 compose-lifecycle = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-ui-text-googlefonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

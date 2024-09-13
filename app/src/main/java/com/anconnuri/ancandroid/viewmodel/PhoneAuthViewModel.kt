@@ -7,6 +7,8 @@ import com.google.firebase.auth.*
 import java.util.concurrent.TimeUnit
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.anconnuri.ancandroid.data.LoginResult
+import com.anconnuri.ancandroid.utils.TokenManager
 import com.anconnuri.ancandroid.views.AuthState
 import com.google.firebase.Firebase
 import kotlinx.coroutines.Dispatchers
@@ -21,13 +23,17 @@ import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.IOException
 
 const val YOUR_SERVER_URL = "https://anc-backend-7502ef948715.herokuapp.com/auth/firebase-auth"
 
 
-class PhoneAuthViewModel : ViewModel() {
+class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    private val tokenManager: TokenManager by inject()
 
     private val _phoneNumber = MutableStateFlow("")
     val phoneNumber = _phoneNumber.asStateFlow()
@@ -144,10 +150,9 @@ class PhoneAuthViewModel : ViewModel() {
 
                                 try {
                                     val jsonBuilder = Json { ignoreUnknownKeys = true }
-//                                val loginResult = jsonBuilder.decodeFromString<LoginResult>(responseJson)
+                                    val loginResult = jsonBuilder.decodeFromString<LoginResult>(responseJson)
 
-                                    Log.d("SignIn", responseJson)
-//                                tokenManager.saveToken(loginResult.token)
+                                    tokenManager.saveToken(loginResult.token)
                                 } catch (e: Exception) {
                                     Log.e("SignIn", "Error parsing response", e)
                                 }
