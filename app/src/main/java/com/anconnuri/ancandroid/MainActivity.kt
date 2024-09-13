@@ -24,7 +24,7 @@ import com.anconnuri.ancandroid.ui.theme.ANCAndroidTheme
 import androidx.navigation.compose.rememberNavController
 import com.anconnuri.ancandroid.navigation.AppNavigation
 import com.anconnuri.ancandroid.navigation.Screens
-import com.anconnuri.ancandroid.views.ChurchBottomNavigationBar
+import com.anconnuri.ancandroid.navigation.ChurchBottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -62,6 +62,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onJuboClicked = {
                                 navController.navigate(Screens.JuboImagesScreen.route)
+                            },
+                            onPrayerClicked = {
+                                navController.navigate(Screens.PrayerScreen.route)
                             }
                         )
                     },

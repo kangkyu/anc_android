@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
 
     alias(libs.plugins.serialization)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -77,4 +78,12 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.ui.text.googlefonts)
+
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
+    implementation("com.google.firebase:firebase-analytics")
+
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-functions")
+    implementation(libs.androidx.security.crypto)
 }
