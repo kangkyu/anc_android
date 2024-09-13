@@ -1,4 +1,4 @@
-package com.anconnuri.ancandroid.views
+package com.anconnuri.ancandroid.navigation
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Icon
@@ -13,12 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import com.anconnuri.ancandroid.R
-import com.anconnuri.ancandroid.navigation.Screens
 
 
 @Composable
 fun ChurchBottomNavigationBar(
-    onSermonsClicked: () -> Unit, onHomeClicked: () -> Unit, onJuboClicked: () -> Unit
+    onSermonsClicked: () -> Unit, onHomeClicked: () -> Unit, onJuboClicked: () -> Unit,
+    onPrayerClicked: () -> Unit
 ) {
     val items = listOf(Screens.SermonVideosScreen, Screens.JuboImagesScreen, Screens.HomeScreen)
     val selectedItem = remember { mutableStateOf(items[0]) }
@@ -75,6 +75,23 @@ fun ChurchBottomNavigationBar(
             },
             label = {
                 Text("안내", textAlign = TextAlign.Center)
+            }
+        )
+
+        NavigationBarItem(
+            selected = selectedItem.value == Screens.LoginScreen,
+            onClick = {
+                onPrayerClicked()
+                selectedItem.value = Screens.PrayerScreen
+            },
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_info_selected),
+                    contentDescription = "Login Icon"
+                )
+            },
+            label = {
+                Text("기도제목", textAlign = TextAlign.Center)
             }
         )
     }

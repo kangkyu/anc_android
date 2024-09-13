@@ -40,10 +40,7 @@ fun SermonVideosView() {
                 NoVideos()
             } else {
                 VideosGrid(
-                    videos = videosUIState.videos,
-                    clickFunc = {
-                        openUrlInExternalBrowser("https://youtu.be/${it.videoId}")
-                    }
+                    videos = videosUIState.videos
                 )
             }
         }
@@ -59,7 +56,7 @@ fun SermonVideosView() {
 }
 
 @Composable
-fun VideosGrid(videos: List<YouTubeVideo>, clickFunc: (YouTubeVideo) -> Unit) {
+fun VideosGrid(videos: List<YouTubeVideo>) {
     LazyColumn(
         modifier = Modifier
             .background(color = MaterialTheme.colorScheme.surfaceContainer)
@@ -70,41 +67,47 @@ fun VideosGrid(videos: List<YouTubeVideo>, clickFunc: (YouTubeVideo) -> Unit) {
         items(
             items = videos,
             itemContent = { video: YouTubeVideo ->
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start,
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.surface)
-                            .padding(14.dp)
-                            .clickable {
-                                // start VideoActivity and pass the video details
-                                clickFunc(video)
-                            },
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        AsyncImage(
-                            model = video.thumbnailUrl,
-                            contentDescription = video.title,
-                            modifier = Modifier
-                                .height(100.dp)
-                                .width(180.dp)
-                                .clip(MaterialTheme.shapes.small),
-                            contentScale = ContentScale.Crop,
-                        )
-                        Text(
-                            text = video.title,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp
-                        )
-                    }
-                }
+                VideoItem(video, clickFunc = {
+                    openUrlInExternalBrowser("https://youtu.be/${it.videoId}")
+                })
             }
         )
     }
 }
 
+@Composable
+fun VideoItem(video: YouTubeVideo, clickFunc: (YouTubeVideo) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start,
+    ) {
+        Row(
+            modifier = Modifier
+                .background(color = MaterialTheme.colorScheme.surface)
+                .padding(14.dp)
+                .clickable {
+                    // start VideoActivity and pass the video details
+                    clickFunc(video)
+                },
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            AsyncImage(
+                model = video.thumbnailUrl,
+                contentDescription = video.title,
+                modifier = Modifier
+                    .height(100.dp)
+                    .width(180.dp)
+                    .clip(MaterialTheme.shapes.small),
+                contentScale = ContentScale.Crop,
+            )
+            Text(
+                text = video.title,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
+            )
+        }
+    }
+}
 @Composable
 fun VideosLoadingView() {
     Box(

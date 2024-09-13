@@ -17,3 +17,8 @@ local.properties
 /.idea
 app/release/
 app/debug/
+
+app/google-services.json
+firebase.json
+ui-debug.log
+.firebaserc
