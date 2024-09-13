@@ -25,11 +25,19 @@ import androidx.navigation.compose.rememberNavController
 import com.anconnuri.ancandroid.navigation.AppNavigation
 import com.anconnuri.ancandroid.navigation.Screens
 import com.anconnuri.ancandroid.navigation.ChurchBottomNavigationBar
+import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.Firebase
+import com.google.firebase.functions.functions
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
+    private lateinit var functions: FirebaseFunctions
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        functions = Firebase.functions
+        functions.useEmulator("127.0.0.1", 9099)
+
         instance = this
 
         enableEdgeToEdge()

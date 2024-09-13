@@ -33,6 +33,9 @@ const val YOUR_SERVER_URL = "https://anc-backend-7502ef948715.herokuapp.com/auth
 class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    private val _tokenSent = MutableStateFlow(false)
+    val tokenSent = _tokenSent.asStateFlow()
+
     private val tokenManager: TokenManager by inject()
 
     private val _phoneNumber = MutableStateFlow("")
@@ -118,57 +121,63 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     }
 
     fun sendIdTokenToServer(idToken: String) {
-        val client = OkHttpClient()
+        if (!tokenSent.value) {
 
-        val requestBody = FormBody.Builder()
-            .build()
+            val client = OkHttpClient()
 
-        val request = Request.Builder()
-            .url(YOUR_SERVER_URL) // your server URL
-            .header("Authorization", "Bearer $idToken")
-            .post(requestBody)
-            .build()
+            val requestBody = FormBody.Builder()
+                .build()
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                // TODO: Show an error message to the user
-                // TODO: Retry the request after a delay
-                Log.e("SignIn", "Failed to send ID token", e)
-            }
+            val request = Request.Builder()
+                .url(YOUR_SERVER_URL) // your server URL
+                .header("Authorization", "Bearer $idToken")
+                .post(requestBody)
+                .build()
 
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    // Handle successful response
-                    Log.d("SignIn", "ID token sent successfully")
-                    // TODO: Navigate to the home screen or perform other actions
-                    viewModelScope.launch {
-                        withContext(Dispatchers.Main) {
-                            response.body?.let {
-                                // Use token from server
-                                val responseJson = it.string()
-                                it.close()
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    // TODO: Show an error message to the user
+                    // TODO: Retry the request after a delay
+                    Log.e("SignIn", "Failed to send ID token", e)
+                }
 
-                                try {
-                                    val jsonBuilder = Json { ignoreUnknownKeys = true }
-                                    val loginResult = jsonBuilder.decodeFromString<LoginResult>(responseJson)
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        // Handle successful response
+                        Log.d("SignIn", "ID token sent successfully")
 
-                                    tokenManager.saveToken(loginResult.token)
-                                } catch (e: Exception) {
-                                    Log.e("SignIn", "Error parsing response", e)
+                        _tokenSent.value = true
+                        // TODO: Navigate to the home screen or perform other actions
+                        viewModelScope.launch {
+                            withContext(Dispatchers.Main) {
+                                response.body?.let {
+                                    // Use token from server
+                                    val responseJson = it.string()
+                                    it.close()
+
+                                    try {
+                                        val jsonBuilder = Json { ignoreUnknownKeys = true }
+                                        val loginResult =
+                                            jsonBuilder.decodeFromString<LoginResult>(responseJson)
+
+                                        tokenManager.saveToken(loginResult.token)
+                                    } catch (e: Exception) {
+                                        Log.e("SignIn", "Error parsing response", e)
+                                    }
                                 }
                             }
                         }
-                    }
-                } else {
-                    // Handle error response
-                    Log.e("SignIn", "Error sending ID token: ${response.code}")
-                    viewModelScope.launch {
-                        withContext(Dispatchers.Main) {
-                            // Show error message to the user
+                    } else {
+                        // Handle error response
+                        Log.e("SignIn", "Error sending ID token: ${response.code}")
+                        viewModelScope.launch {
+                            withContext(Dispatchers.Main) {
+                                // Show error message to the user
+                            }
                         }
                     }
                 }
-            }
-        })
+            })
+        }
     }
 }
