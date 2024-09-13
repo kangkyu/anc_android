@@ -22,3 +22,4 @@ app/google-services.json
 firebase.json
 ui-debug.log
 .firebaserc
+firebase-debug.log
