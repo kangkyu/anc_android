@@ -1,5 +1,6 @@
 package com.anconnuri.ancandroid.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -13,7 +14,6 @@ import com.anconnuri.ancandroid.views.JuboView
 import com.anconnuri.ancandroid.views.PhoneAuthScreen
 import com.anconnuri.ancandroid.views.PrayerView
 import com.anconnuri.ancandroid.views.SermonVideosView
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.getKoin
 import org.koin.core.qualifier.named
 
@@ -54,7 +54,19 @@ fun AppNavigation(
         composable(Screens.LoginScreen.route) {
             PhoneAuthScreen(
                 viewModel = authViewModel,
-                onLoginSuccess = {
+                onLoginSuccess = { user ->
+                    user!!.getIdToken(true).addOnCompleteListener { task ->
+
+                        if (task.isSuccessful) {
+                            val idToken: String = task.result.token.toString()
+                            // Send token to your backend via HTTPS
+                            // TODO: Fix it not to be triggered multiple times
+                            authViewModel.sendIdTokenToServer(idToken)
+                        } else {
+                            Log.d("IdToken", "getIdToken not successful")
+                            // Handle error -> task.getException();
+                        }
+                    }
                     // TODO: redirect to target screen
                     navHostController.navigate(Screens.PrayerScreen.route)
                 }

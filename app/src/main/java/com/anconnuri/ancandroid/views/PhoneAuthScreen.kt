@@ -18,16 +18,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.anconnuri.ancandroid.navigation.Screens
 import com.anconnuri.ancandroid.viewmodel.PhoneAuthViewModel
-import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.getKoin
+import com.google.firebase.auth.FirebaseUser
 
 
 @Composable
 fun PhoneAuthScreen(
     viewModel: PhoneAuthViewModel,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: (FirebaseUser?) -> Unit
 ) {
     val authState by viewModel.authState.collectAsState()
 
@@ -35,7 +33,9 @@ fun PhoneAuthScreen(
     when (authState) {
         is AuthState.Loading -> LoadingIndicator()
         is AuthState.Error -> ErrorMessage((authState as AuthState.Error).message)
-        is AuthState.Success -> onLoginSuccess()
+        is AuthState.Success -> {
+            onLoginSuccess((authState as AuthState.Success).user)
+        }
         is AuthState.CodeSent -> VerificationCodeInput(viewModel)
         is AuthState.Idle -> PhoneNumberInput(viewModel)
     }
@@ -114,15 +114,5 @@ fun ErrorMessage(message: String) {
         contentAlignment = Alignment.Center
     ) {
         Text(message)
-    }
-}
-
-@Composable
-fun NavigateToNextScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Temporary Test - NavigateToNextScreen")
     }
 }
