@@ -13,6 +13,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -44,6 +45,13 @@ fun PhoneAuthScreen(
 @Composable
 fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
     val phoneNumber by viewModel.phoneNumber.collectAsState()
+
+    val tokenFetched by viewModel.tokenFetched.collectAsState()
+    LaunchedEffect(Unit) {
+        if (!tokenFetched) {
+            viewModel.getIntegrityToken()
+        }
+    }
 
     Column(
         modifier = Modifier

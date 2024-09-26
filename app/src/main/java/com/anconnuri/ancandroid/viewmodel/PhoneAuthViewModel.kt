@@ -1,6 +1,8 @@
 package com.anconnuri.ancandroid.viewmodel
 
 
+import android.content.Context
+import android.util.Base64
 import androidx.lifecycle.ViewModel
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.*
@@ -10,9 +12,15 @@ import androidx.lifecycle.viewModelScope
 import com.anconnuri.ancandroid.data.LoginResult
 import com.anconnuri.ancandroid.utils.TokenManager
 import com.anconnuri.ancandroid.views.AuthState
+import com.google.android.gms.tasks.Task
+import com.google.android.play.core.integrity.IntegrityManagerFactory
+import com.google.android.play.core.integrity.IntegrityTokenRequest
+import com.google.android.play.core.integrity.IntegrityTokenResponse
 import com.google.firebase.Firebase
+import io.ktor.util.encodeBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,11 +34,14 @@ import okhttp3.Response
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.IOException
+import java.security.SecureRandom
 
 const val YOUR_SERVER_URL = "https://anc-backend-7502ef948715.herokuapp.com/auth/firebase-auth"
-
+const val YOUR_PROJECT_NUMBER = 684076341065
 
 class PhoneAuthViewModel : ViewModel(), KoinComponent {
+    private val applicationContext by inject<Context>()
+
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     private val _tokenSent = MutableStateFlow(false)
@@ -49,6 +60,9 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState = _authState.asStateFlow()
+
+    private val _tokenFetched = MutableStateFlow(false)
+    val tokenFetched: StateFlow<Boolean> = _tokenFetched.asStateFlow()
 
     private var verificationId: String = ""
 
@@ -179,5 +193,42 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
                 }
             })
         }
+    }
+
+    fun getIntegrityToken() {
+        viewModelScope.launch {
+            try {
+
+                val result = withContext(Dispatchers.IO) {
+                    val nonce: String = generateNonce()
+                    val integrityManager = IntegrityManagerFactory.create(applicationContext)
+
+                    val integrityTokenResponse: Task<IntegrityTokenResponse> =
+                        integrityManager.requestIntegrityToken(
+                            IntegrityTokenRequest.builder()
+                                .setCloudProjectNumber(YOUR_PROJECT_NUMBER)
+                                .setNonce(nonce)
+                                .build()
+                        )
+                    integrityTokenResponse.addOnSuccessListener { resp ->
+                        val integrityToken: String = resp.token()
+                        _tokenFetched.value = true
+                        // Store the token or use it immediately
+                    }
+                    integrityTokenResponse.addOnFailureListener { e ->
+                        Log.e("IntegrityAPI", "Failed integration token fetch", e)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("IntegrityAPI", "Error getting integrity token", e)
+                // Handle the error, possibly by returning a default value or throwing an exception
+            }
+        }
+    }
+
+    private fun generateNonce(): String {
+        val nonce = ByteArray(16) // 16 bytes = 128 bits
+        SecureRandom().nextBytes(nonce)
+        return Base64.encodeToString(nonce, Base64.URL_SAFE or Base64.NO_WRAP)
     }
 }
