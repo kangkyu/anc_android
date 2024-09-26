@@ -25,6 +25,12 @@ import androidx.navigation.compose.rememberNavController
 import com.anconnuri.ancandroid.navigation.AppNavigation
 import com.anconnuri.ancandroid.navigation.Screens
 import com.anconnuri.ancandroid.navigation.ChurchBottomNavigationBar
+import com.google.firebase.BuildConfig
+import com.google.firebase.Firebase
+import com.google.firebase.appcheck.appCheck
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+import com.google.firebase.initialize
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -82,6 +88,23 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+//        initDebug()
+        init()
+    }
+
+    private fun init() {
+        Firebase.initialize(context = this)
+        Firebase.appCheck.installAppCheckProviderFactory(
+            PlayIntegrityAppCheckProviderFactory.getInstance(),
+        )
+    }
+
+    private fun initDebug() {
+        Firebase.initialize(context = this)
+        Firebase.appCheck.installAppCheckProviderFactory(
+            DebugAppCheckProviderFactory.getInstance(),
+        )
     }
 
     fun openBrowser(url: String) {
