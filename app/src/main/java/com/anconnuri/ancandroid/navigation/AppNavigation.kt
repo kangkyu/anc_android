@@ -45,7 +45,10 @@ fun AppNavigation(
             ProtectedRoute(
                 isLoggedIn = isLoggedIn,
                 onLoginRequired = {
-                    navHostController.navigate(Screens.LoginScreen.route)
+                    navHostController.navigate(Screens.LoginScreen.route) {
+                        popUpTo(Screens.PrayerScreen.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             ) {
                 PrayerView()
