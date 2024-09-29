@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.anconnuri.ancandroid.ui.theme.ANCAndroidTheme
 import androidx.navigation.compose.rememberNavController
+import com.anconnuri.ancandroid.data.ChurchAPI
 import com.anconnuri.ancandroid.navigation.AppNavigation
 import com.anconnuri.ancandroid.navigation.Screens
 import com.anconnuri.ancandroid.navigation.ChurchBottomNavigationBar
@@ -105,6 +106,11 @@ class MainActivity : ComponentActivity() {
         Firebase.appCheck.installAppCheckProviderFactory(
             DebugAppCheckProviderFactory.getInstance(),
         )
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ChurchAPI.shared.close()
     }
 
     fun openBrowser(url: String) {

@@ -12,9 +12,7 @@ import org.koin.dsl.module
 val appModules = module {
     viewModel { VideosViewModel() }
     viewModel { JuboViewModel() }
-    scope(named("main_graph_scope")) {
-        viewModel { PhoneAuthViewModel() }
-    }
+    viewModel { PhoneAuthViewModel() }
     viewModel { PrayerViewModel() }
     single { TokenManager(get()) }
 }

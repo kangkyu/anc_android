@@ -107,7 +107,7 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
         }
 
         val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(_phoneNumber.value)
+            .setPhoneNumber(phoneNumber.value)
             .setTimeout(60L, TimeUnit.SECONDS)
             .setCallbacks(callbacks)
             .build()

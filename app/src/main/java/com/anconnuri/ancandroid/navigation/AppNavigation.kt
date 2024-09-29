@@ -14,6 +14,8 @@ import com.anconnuri.ancandroid.views.JuboView
 import com.anconnuri.ancandroid.views.PhoneAuthScreen
 import com.anconnuri.ancandroid.views.PrayerView
 import com.anconnuri.ancandroid.views.SermonVideosView
+import org.koin.androidx.compose.koinViewModel
+import org.koin.androidx.compose.navigation.koinNavViewModel
 import org.koin.compose.getKoin
 import org.koin.core.qualifier.named
 
@@ -21,11 +23,7 @@ import org.koin.core.qualifier.named
 fun AppNavigation(
     navHostController: NavHostController = rememberNavController()
 ) {
-    val mainGraphScope = getKoin().createScope(Screens.PrayerScreen.route, named("main_graph_scope"))
-
-    val scope = getKoin().getScope(Screens.PrayerScreen.route)
-    val authViewModel: PhoneAuthViewModel by scope.inject()
-
+    val authViewModel: PhoneAuthViewModel = koinViewModel()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
     NavHost(

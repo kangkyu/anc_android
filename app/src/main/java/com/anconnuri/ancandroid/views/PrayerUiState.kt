@@ -5,6 +5,6 @@ import com.anconnuri.ancandroid.data.Prayer
 
 data class PrayerUiState(
     val loadingState: LoadingState = LoadingState.Loading,
-    val prayer: Prayer = Prayer(content = ""),
+    val prayer: Prayer? = null,
     val error: String? = null
 )
