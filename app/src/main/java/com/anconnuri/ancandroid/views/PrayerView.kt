@@ -28,13 +28,14 @@ import androidx.compose.ui.unit.sp
 import com.anconnuri.ancandroid.data.LoadingState
 import com.anconnuri.ancandroid.data.Prayer
 import com.anconnuri.ancandroid.viewmodel.PrayerViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PrayerScreen(viewModel: PrayerViewModel) {
+fun PrayerScreen() {
+    val viewModel: PrayerViewModel = koinViewModel()
+
     val pagerState = rememberPagerState(pageCount = { Int.MAX_VALUE })
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -116,12 +117,6 @@ fun PrayerScreen(viewModel: PrayerViewModel) {
             }
         }
     }
-}
-
-@Composable
-fun PrayerView() {
-    val viewModel: PrayerViewModel = koinViewModel()
-    PrayerScreen(viewModel)
 }
 
 @Composable

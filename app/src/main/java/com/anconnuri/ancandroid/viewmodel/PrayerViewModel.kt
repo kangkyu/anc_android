@@ -83,6 +83,5 @@ class PrayerViewModel : ViewModel(), KoinComponent {
         _uiState.update {
             it.copy(loadingState = LoadingState.Error, error = "No token available")
         }
-        // You might want to trigger navigation to a login screen here
     }
 }

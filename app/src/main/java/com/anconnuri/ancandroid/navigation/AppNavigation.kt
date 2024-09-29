@@ -12,12 +12,9 @@ import com.anconnuri.ancandroid.viewmodel.PhoneAuthViewModel
 import com.anconnuri.ancandroid.views.ChurchInfoView
 import com.anconnuri.ancandroid.views.JuboView
 import com.anconnuri.ancandroid.views.PhoneAuthScreen
-import com.anconnuri.ancandroid.views.PrayerView
+import com.anconnuri.ancandroid.views.PrayerScreen
 import com.anconnuri.ancandroid.views.SermonVideosView
 import org.koin.androidx.compose.koinViewModel
-import org.koin.androidx.compose.navigation.koinNavViewModel
-import org.koin.compose.getKoin
-import org.koin.core.qualifier.named
 
 @Composable
 fun AppNavigation(
@@ -49,7 +46,7 @@ fun AppNavigation(
                     }
                 }
             ) {
-                PrayerView()
+                PrayerScreen()
             }
         }
         composable(Screens.LoginScreen.route) {
@@ -68,7 +65,7 @@ fun AppNavigation(
                             // Handle error -> task.getException();
                         }
                     }
-                    // TODO: redirect to target screen
+                    // Redirect to target screen
                     navHostController.navigate(Screens.PrayerScreen.route)
                 }
             )
