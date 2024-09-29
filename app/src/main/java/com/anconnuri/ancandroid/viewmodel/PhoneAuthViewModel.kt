@@ -52,6 +52,9 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private val _phoneNumber = MutableStateFlow("")
     val phoneNumber = _phoneNumber.asStateFlow()
 
+    private val _phoneNumberError = MutableStateFlow<String?>(null)
+    val phoneNumberError: StateFlow<String?> = _phoneNumberError
+
     private val _verificationCode = MutableStateFlow("")
     val verificationCode = _verificationCode.asStateFlow()
 
@@ -68,6 +71,7 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
 
     fun updatePhoneNumber(number: String) {
         _phoneNumber.value = number
+        _phoneNumberError.value = null // Clear any previous error when the user types
     }
 
     fun updateVerificationCode(code: String) {
@@ -87,6 +91,13 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     }
 
     fun sendVerificationCode() {
+        if (_phoneNumber.value.isBlank()) {
+            _phoneNumberError.value = "Phone number cannot be empty"
+            return
+        }
+        // Clear any previous error
+        _phoneNumberError.value = null
+
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                 signInWithPhoneAuthCredential(credential)
@@ -105,7 +116,6 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
                 _authState.value = AuthState.CodeSent
             }
         }
-
         val options = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(_phoneNumber.value)
             .setTimeout(60L, TimeUnit.SECONDS)

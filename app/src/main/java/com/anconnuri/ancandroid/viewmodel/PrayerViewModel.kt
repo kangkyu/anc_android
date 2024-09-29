@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 
 class PrayerViewModel : ViewModel(), KoinComponent {
     private val tokenManager: TokenManager by inject()
@@ -25,37 +27,24 @@ class PrayerViewModel : ViewModel(), KoinComponent {
     private val _isTokenValid = MutableStateFlow(true)
     val isTokenValid = _isTokenValid.asStateFlow()
 
-    var isRefreshing by mutableStateOf(false)
+    private var fetchJob: Job? = null
 
-    // TODO: this is temporary
     init {
-        getPrayer()
+        getPrayer(0) // Fetch initial prayer when ViewModel is created
     }
 
-    // TODO: decide and add a 'next' button on PrayerView
-    fun refresh() {
-        isRefreshing = true
-        try {
-            getPrayer()
-        } finally {
-            isRefreshing = false
-        }
-    }
-
-    fun getPrayer() {
-        _uiState.value = PrayerUiState(loadingState = LoadingState.Loading)
-        viewModelScope.launch {
+    fun getPrayer(page: Int) {
+        fetchJob?.cancel() // Cancel any ongoing fetch job
+        fetchJob = viewModelScope.launch {
+            _uiState.update { it.copy(loadingState = LoadingState.Loading) }
             try {
                 val token = tokenManager.getToken()
                 if (token == null) {
-                    _isTokenValid.value = false
-                    _uiState.update {
-                        it.copy(loadingState = LoadingState.Error, error = "No token available")
-                    }
+                    handleInvalidToken()
                     return@launch
                 }
 
-                ChurchAPI.shared.getFirstPrayer(token).onSuccess { result ->
+                ChurchAPI.shared.getPagedPrayer(token, page+1).onSuccess { result ->
                     _uiState.update {
                         it.copy(
                             loadingState = LoadingState.Success,
@@ -72,6 +61,27 @@ class PrayerViewModel : ViewModel(), KoinComponent {
                     it.copy(loadingState = LoadingState.Error, error = e.message)
                 }
             }
+        }
+    }
+
+    fun onAnotherPrayerRequested(page: Int) {
+        viewModelScope.launch {
+            delay(300) // Add a small delay to prevent rapid-fire API calls
+            getPrayer(page+1)
+        }
+    }
+
+    fun onAnotherPrayerRequestedBackward(page: Int) {
+        viewModelScope.launch {
+            delay(300) // Add a small delay to prevent rapid-fire API calls
+            getPrayer(page)
+        }
+    }
+
+    private fun handleInvalidToken() {
+        _isTokenValid.value = false
+        _uiState.update {
+            it.copy(loadingState = LoadingState.Error, error = "No token available")
         }
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +46,7 @@ fun PhoneAuthScreen(
 @Composable
 fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
     val phoneNumber by viewModel.phoneNumber.collectAsState()
+    val phoneNumberError by viewModel.phoneNumberError.collectAsState()
 
     val tokenFetched by viewModel.tokenFetched.collectAsState()
     LaunchedEffect(Unit) {
@@ -66,7 +68,16 @@ fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
                 viewModel.updatePhoneNumber(number)
             },
             label = { Text("Phone Number") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = phoneNumberError != null,
+            supportingText = {
+                phoneNumberError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(

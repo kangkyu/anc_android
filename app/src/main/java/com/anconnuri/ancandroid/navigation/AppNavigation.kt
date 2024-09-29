@@ -12,20 +12,15 @@ import com.anconnuri.ancandroid.viewmodel.PhoneAuthViewModel
 import com.anconnuri.ancandroid.views.ChurchInfoView
 import com.anconnuri.ancandroid.views.JuboView
 import com.anconnuri.ancandroid.views.PhoneAuthScreen
-import com.anconnuri.ancandroid.views.PrayerView
+import com.anconnuri.ancandroid.views.PrayerScreen
 import com.anconnuri.ancandroid.views.SermonVideosView
-import org.koin.compose.getKoin
-import org.koin.core.qualifier.named
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AppNavigation(
     navHostController: NavHostController = rememberNavController()
 ) {
-    val mainGraphScope = getKoin().createScope(Screens.PrayerScreen.route, named("main_graph_scope"))
-
-    val scope = getKoin().getScope(Screens.PrayerScreen.route)
-    val authViewModel: PhoneAuthViewModel by scope.inject()
-
+    val authViewModel: PhoneAuthViewModel = koinViewModel()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
     NavHost(
@@ -51,7 +46,7 @@ fun AppNavigation(
                     }
                 }
             ) {
-                PrayerView()
+                PrayerScreen()
             }
         }
         composable(Screens.LoginScreen.route) {
@@ -70,7 +65,7 @@ fun AppNavigation(
                             // Handle error -> task.getException();
                         }
                     }
-                    // TODO: redirect to target screen
+                    // Redirect to target screen
                     navHostController.navigate(Screens.PrayerScreen.route)
                 }
             )
