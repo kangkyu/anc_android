@@ -1,6 +1,5 @@
 package com.anconnuri.ancandroid.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anconnuri.ancandroid.data.ChurchAPI
