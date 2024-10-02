@@ -1,8 +1,5 @@
 package com.anconnuri.ancandroid.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anconnuri.ancandroid.data.ChurchAPI
@@ -24,14 +21,13 @@ class PrayerViewModel : ViewModel(), KoinComponent {
     private val _uiState = MutableStateFlow(PrayerUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _isTokenValid = MutableStateFlow(true)
-    val isTokenValid = _isTokenValid.asStateFlow()
+    private val _formState = MutableStateFlow<FormState>(FormState.Idle)
+    val formState = _formState.asStateFlow()
+
+    private val _hasMorePages = MutableStateFlow<Boolean>(true)
+    val hasMorePages = _hasMorePages.asStateFlow()
 
     private var fetchJob: Job? = null
-
-    init {
-        getPrayer(0) // Fetch initial prayer when ViewModel is created
-    }
 
     fun getPrayer(page: Int) {
         fetchJob?.cancel() // Cancel any ongoing fetch job
@@ -44,16 +40,17 @@ class PrayerViewModel : ViewModel(), KoinComponent {
                     return@launch
                 }
 
-                ChurchAPI.shared.getPagedPrayer(token, page+1).onSuccess { result ->
+                ChurchAPI.shared.getPagedPrayer(token, page).onSuccess { result ->
                     _uiState.update {
                         it.copy(
                             loadingState = LoadingState.Success,
                             prayer = result
                         )
                     }
-                }.onFailure { result ->
+                    _hasMorePages.value = result != null
+                }.onFailure { error ->
                     _uiState.update {
-                        it.copy(loadingState = LoadingState.Failure, error = result.toString())
+                        it.copy(loadingState = LoadingState.Failure, error = error.toString())
                     }
                 }
             } catch (e: Exception) {
@@ -64,24 +61,49 @@ class PrayerViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    fun onAnotherPrayerRequested(page: Int) {
-        viewModelScope.launch {
-            delay(300) // Add a small delay to prevent rapid-fire API calls
-            getPrayer(page+1)
-        }
-    }
-
-    fun onAnotherPrayerRequestedBackward(page: Int) {
-        viewModelScope.launch {
-            delay(300) // Add a small delay to prevent rapid-fire API calls
-            getPrayer(page)
-        }
+    fun setHasMorePages(value: Boolean) {
+        _hasMorePages.value = value
     }
 
     private fun handleInvalidToken() {
-        _isTokenValid.value = false
         _uiState.update {
             it.copy(loadingState = LoadingState.Error, error = "No token available")
         }
     }
+
+    fun submitPrayerRequest(content: String) {
+
+        viewModelScope.launch {
+
+            val token = tokenManager.getToken()
+            if (token == null) {
+                handleInvalidToken()
+                return@launch
+            }
+
+            _formState.value = FormState.Submitting
+            ChurchAPI.shared.addPrayerRequest(token, content).onSuccess { result ->
+                _uiState.update {
+                    it.copy(prayer = result)
+                }
+                _formState.value = FormState.Submitted
+            }.onFailure { result ->
+                _uiState.update {
+                    it.copy(error = result.toString())
+                }
+                _formState.value = FormState.Error("An error occurred")
+            }
+        }
+    }
+
+    fun resetFormState() {
+        _formState.value = FormState.Idle
+    }
+}
+
+sealed class FormState {
+    object Idle : FormState()
+    object Submitting : FormState()
+    object Submitted : FormState()
+    data class Error(val message: String) : FormState()
 }

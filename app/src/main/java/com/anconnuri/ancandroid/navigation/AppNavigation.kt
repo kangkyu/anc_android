@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.anconnuri.ancandroid.viewmodel.PhoneAuthViewModel
+import com.anconnuri.ancandroid.views.AddPrayerRequestScreen
 import com.anconnuri.ancandroid.views.ChurchInfoView
 import com.anconnuri.ancandroid.views.JuboView
 import com.anconnuri.ancandroid.views.PhoneAuthScreen
@@ -46,8 +47,15 @@ fun AppNavigation(
                     }
                 }
             ) {
-                PrayerScreen()
+                PrayerScreen(
+                    onAddPrayer = {
+                        navHostController.navigate(Screens.AddPrayerScreen.route)
+                    }
+                )
             }
+        }
+        composable(Screens.AddPrayerScreen.route) {
+            AddPrayerRequestScreen(navHostController)
         }
         composable(Screens.LoginScreen.route) {
             PhoneAuthScreen(
