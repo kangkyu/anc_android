@@ -82,7 +82,13 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
 
     fun signOut() {
         Firebase.auth.signOut()
+        _authState.value = AuthState.Idle
         _isLoggedIn.value = false
+        _phoneNumber.value = ""
+        _tokenSent.value = false
+        _phoneNumberError.value = null
+        _verificationCode.value = ""
+        _tokenFetched.value = false
     }
 
     fun sendVerificationCode() {

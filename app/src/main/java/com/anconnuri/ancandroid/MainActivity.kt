@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
+//        Use initDebug() instead, when use test phone number
 //        initDebug()
         init()
     }

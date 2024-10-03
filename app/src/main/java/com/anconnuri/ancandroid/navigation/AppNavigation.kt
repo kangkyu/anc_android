@@ -54,7 +54,6 @@ fun AppNavigation(
                         authViewModel.signOut()
                         navHostController.navigate(Screens.LoginScreen.route) {
                             popUpTo(Screens.PrayerScreen.route) { inclusive = true }
-                            launchSingleTop = true
                         }
                     }
                 )
