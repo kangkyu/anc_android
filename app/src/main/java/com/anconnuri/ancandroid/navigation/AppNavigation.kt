@@ -50,6 +50,10 @@ fun AppNavigation(
                 PrayerScreen(
                     onAddPrayer = {
                         navHostController.navigate(Screens.AddPrayerScreen.route)
+                    },
+                    onSignOut = {
+                        authViewModel.signOut()
+                        navHostController.navigate(Screens.LoginScreen.route)
                     }
                 )
             }
