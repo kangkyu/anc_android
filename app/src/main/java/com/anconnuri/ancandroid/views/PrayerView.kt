@@ -1,8 +1,6 @@
 package com.anconnuri.ancandroid.views
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -29,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import com.anconnuri.ancandroid.data.LoadingState
 import com.anconnuri.ancandroid.data.Prayer
 import com.anconnuri.ancandroid.viewmodel.PrayerViewModel
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -39,7 +36,7 @@ fun PrayerScreen(onAddPrayer: () -> Unit, onSignOut: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     val hasMorePages by viewModel.hasMorePages.collectAsState()
 
-    var currentPage by remember { mutableStateOf(1) }
+    var currentPage by remember { mutableIntStateOf(1) }
 
     LaunchedEffect(currentPage) {
         if (hasMorePages) {
@@ -69,7 +66,6 @@ fun PrayerScreen(onAddPrayer: () -> Unit, onSignOut: () -> Unit) {
                 LoadingState.Error, LoadingState.Failure -> {
                     Text(uiState.error ?: "An error occurred", color = MaterialTheme.colorScheme.error)
                 }
-                else -> Text("No prayer available")
             }
         }
 

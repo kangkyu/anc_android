@@ -17,7 +17,6 @@ import com.google.android.play.core.integrity.IntegrityManagerFactory
 import com.google.android.play.core.integrity.IntegrityTokenRequest
 import com.google.android.play.core.integrity.IntegrityTokenResponse
 import com.google.firebase.Firebase
-import io.ktor.util.encodeBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -86,10 +85,6 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
         _isLoggedIn.value = false
     }
 
-    fun signIn() {
-        _isLoggedIn.value = true
-    }
-
     fun sendVerificationCode() {
         if (_phoneNumber.value.isBlank()) {
             _phoneNumberError.value = "Phone number cannot be empty"
@@ -134,7 +129,7 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("Login", "successful login")
-                    signIn()
+                    _isLoggedIn.value = true
                     _authState.value = AuthState.Success(auth.currentUser)
                 } else {
                     // Sign in failed

@@ -1,9 +1,12 @@
 package com.anconnuri.ancandroid.views
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,7 +59,7 @@ fun JuboImageView(externalLink: ExternalURL) {
     // set up all transformation states
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
-    val state = rememberTransformableState { zoomChange, offsetChange, rotationChange ->
+    val state = rememberTransformableState { zoomChange, offsetChange, _ ->
         scale *= zoomChange
         offset += offsetChange
     }
@@ -79,16 +82,22 @@ fun JuboImageView(externalLink: ExternalURL) {
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun JuboImage(modifier: Modifier = Modifier, externalLink: ExternalURL) {
+
+    val pagerState = rememberPagerState(pageCount = {
+        2
+    })
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        externalLink.urls.forEach { url ->
+        VerticalPager(state = pagerState) { page ->
+
             AsyncImage(
                 ImageRequest.Builder(LocalContext.current)
-                    .data(url)
+                    .data(externalLink.urls[page])
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
