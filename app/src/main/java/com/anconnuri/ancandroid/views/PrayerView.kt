@@ -52,9 +52,9 @@ fun PrayerScreen(onAddPrayer: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Center
         ) {
             when (uiState.loadingState) {
                 LoadingState.Loading -> CircularProgressIndicator()
@@ -71,27 +71,28 @@ fun PrayerScreen(onAddPrayer: () -> Unit) {
                 }
                 else -> Text("No prayer available")
             }
-            Row {
-                Button(
-                    onClick = {
-                        currentPage -= 1
-                        viewModel.setHasMorePages(true)
-                    },
-                    enabled = currentPage > 1
-                ) {
-                    Text("Backward")
-                }
+        }
 
-                Spacer(modifier = Modifier.weight(1f)) // Push buttons to the sides
+        Row {
+            Button(
+                onClick = {
+                    currentPage -= 1
+                    viewModel.setHasMorePages(true)
+                },
+                enabled = currentPage > 1
+            ) {
+                Text("Backward")
+            }
 
-                Button(
-                    onClick = {
-                        currentPage += 1
-                    },
-                    enabled = hasMorePages
-                ) {
-                    Text("Forward")
-                }
+            Spacer(modifier = Modifier.weight(1f)) // Push buttons to the sides
+
+            Button(
+                onClick = {
+                    currentPage += 1
+                },
+                enabled = hasMorePages
+            ) {
+                Text("Forward")
             }
         }
 
@@ -108,7 +109,7 @@ fun PrayerScreen(onAddPrayer: () -> Unit) {
 fun PrayerContent(prayer: Prayer, onPray: () -> Unit) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
