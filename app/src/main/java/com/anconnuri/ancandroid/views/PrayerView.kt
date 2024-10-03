@@ -34,7 +34,7 @@ import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
-fun PrayerScreen(onAddPrayer: () -> Unit) {
+fun PrayerScreen(onAddPrayer: () -> Unit, onSignOut: () -> Unit) {
     val viewModel: PrayerViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val hasMorePages by viewModel.hasMorePages.collectAsState()
@@ -101,6 +101,13 @@ fun PrayerScreen(onAddPrayer: () -> Unit) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text("Add Prayer")
+        }
+
+        Button(
+            onClick = onSignOut,
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text("Log Out")
         }
     }
 }
