@@ -9,7 +9,9 @@ import com.google.firebase.auth.*
 import java.util.concurrent.TimeUnit
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.anconnuri.ancandroid.data.CountryCode
 import com.anconnuri.ancandroid.data.LoginResult
+import com.anconnuri.ancandroid.data.countryCodes
 import com.anconnuri.ancandroid.utils.TokenManager
 import com.anconnuri.ancandroid.views.AuthState
 import com.google.android.gms.tasks.Task
@@ -54,6 +56,9 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private val _phoneNumberError = MutableStateFlow<String?>(null)
     val phoneNumberError: StateFlow<String?> = _phoneNumberError
 
+    private val _selectedCountryCode = MutableStateFlow(countryCodes.first())
+    val selectedCountryCode: StateFlow<CountryCode> = _selectedCountryCode
+
     private val _verificationCode = MutableStateFlow("")
     val verificationCode = _verificationCode.asStateFlow()
 
@@ -70,7 +75,24 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
 
     fun updatePhoneNumber(number: String) {
         _phoneNumber.value = number
-        _phoneNumberError.value = null // Clear any previous error when the user types
+        _phoneNumberError.value = null
+    }
+
+    private fun validatePhoneNumber(): Boolean {
+        return when {
+            _phoneNumber.value.isEmpty() -> {
+                _phoneNumberError.value = "Phone number cannot be empty"
+                false
+            }
+            _phoneNumber.value.length != 10 -> {
+                _phoneNumberError.value = "Phone number must be 10 digits"
+                false
+            }
+            else -> {
+                _phoneNumberError.value = null
+                true
+            }
+        }
     }
 
     fun updateVerificationCode(code: String) {
@@ -91,13 +113,19 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
         _tokenFetched.value = false
     }
 
+    fun updateCountryCode(countryCode: CountryCode) {
+        _selectedCountryCode.value = countryCode
+    }
+
     fun sendVerificationCode() {
-        if (_phoneNumber.value.isBlank()) {
-            _phoneNumberError.value = "Phone number cannot be empty"
+        if (!validatePhoneNumber()) {
             return
         }
+
         // Clear any previous error
         _phoneNumberError.value = null
+
+        val fullPhoneNumber = "${selectedCountryCode.value.prefix}${phoneNumber.value}"
 
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
@@ -118,7 +146,7 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
             }
         }
         val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(_phoneNumber.value)
+            .setPhoneNumber(fullPhoneNumber)
             .setTimeout(60L, TimeUnit.SECONDS)
             .setCallbacks(callbacks)
             .build()
