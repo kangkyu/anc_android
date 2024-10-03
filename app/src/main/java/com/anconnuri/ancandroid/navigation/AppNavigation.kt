@@ -43,7 +43,6 @@ fun AppNavigation(
                 onLoginRequired = {
                     navHostController.navigate(Screens.LoginScreen.route) {
                         popUpTo(Screens.PrayerScreen.route) { inclusive = true }
-                        launchSingleTop = true
                     }
                 }
             ) {
@@ -53,7 +52,7 @@ fun AppNavigation(
                     },
                     onSignOut = {
                         authViewModel.signOut()
-                        navHostController.navigate(Screens.LoginScreen.route)
+                        navHostController.navigate(Screens.PrayerScreen.route)
                     }
                 )
             }
