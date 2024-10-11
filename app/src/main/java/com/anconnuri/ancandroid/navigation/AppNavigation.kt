@@ -60,7 +60,16 @@ fun AppNavigation(
             }
         }
         composable(Screens.AddPrayerScreen.route) {
-            AddPrayerRequestScreen(navHostController)
+            ProtectedRoute(
+                isLoggedIn = isLoggedIn,
+                onLoginRequired = {
+                    navHostController.navigate(Screens.LoginScreen.route) {
+                        popUpTo(Screens.AddPrayerScreen.route) { inclusive = true }
+                    }
+                }
+            ) {
+                AddPrayerRequestScreen(navHostController)
+            }
         }
         composable(Screens.LoginScreen.route) {
             PhoneAuthScreen(

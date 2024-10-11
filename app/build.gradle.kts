@@ -14,8 +14,8 @@ android {
         applicationId = "com.anconnuri.ancandroid"
         minSdk = 24
         targetSdk = 34
-        versionCode = 19
-        versionName = "6.13"
+        versionCode = 20
+        versionName = "6.14"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -80,14 +80,13 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.ui.text.googlefonts)
 
-    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
-    implementation("com.google.firebase:firebase-analytics")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
 
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-functions")
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.functions)
     implementation(libs.androidx.security.crypto)
 
     implementation("com.google.android.play:integrity:1.4.0")
-    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation(libs.firebase.appcheck.playintegrity)
 }
