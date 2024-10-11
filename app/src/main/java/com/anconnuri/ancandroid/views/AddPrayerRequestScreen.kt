@@ -4,9 +4,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -19,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.anconnuri.ancandroid.viewmodel.FormState
@@ -50,14 +57,25 @@ fun AddPrayerRequestScreen(navController: NavHostController) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Add Your Prayer Request", style = MaterialTheme.typography.headlineSmall)
+        IconButton(onClick = { navController.popBackStack() }) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close"
+            )
+        }
+
+        Text("기도제목을 보내세요", style = MaterialTheme.typography.headlineSmall)
 
         OutlinedTextField(
             value = content,
             onValueChange = { content = it },
             label = { Text("Your prayer request") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = formState !is FormState.Submitting
+            modifier = Modifier.fillMaxWidth().height(200.dp),
+            enabled = formState !is FormState.Submitting,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.None  // Prevents single-line behavior
+            ),
+            singleLine = false
         )
 
         Button(
