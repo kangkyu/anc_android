@@ -18,6 +18,8 @@ data class Prayer(
     @SerialName("created_at")
     val createdAt: String? = null,
     @SerialName("counter")
-    val counter: Int
+    val counter: Int,
+    @SerialName("user_prayed")
+    val userPrayed: Boolean
     // Add other fields that the server returns
 )

@@ -129,7 +129,8 @@ fun PrayerContent(prayer: Prayer, onPray: () -> Unit) {
         Text("${prayer.counter} praying")
         Button(
             onClick = onPray,
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier.padding(top = 16.dp),
+            enabled = !prayer.userPrayed
         ) {
             Text("I pray")
         }
