@@ -112,6 +112,26 @@ class ChurchAPI {
     fun close() {
         client.close()
     }
+
+    suspend fun prayPrayer(tokenString: String, id: Int): Result<Prayer?> {
+        return runCatching {
+            val response: HttpResponse = client.post("${baseUrl}/prayers/$id/pray") {
+                applyDefaultHeaders(tokenString)
+            }
+
+            when (response.status) {
+                HttpStatusCode.OK -> {
+                    val prayerJson = response.bodyAsText()
+                    val jsonBuilder = Json { ignoreUnknownKeys = true }
+                    val prayer = jsonBuilder.decodeFromString<Prayer>(prayerJson)
+                    prayer
+                }
+                else -> {
+                    throw Exception("Unexpected response: ${response.status.value}")
+                }
+            }
+        }
+    }
 }
 
 enum class LoadingState {

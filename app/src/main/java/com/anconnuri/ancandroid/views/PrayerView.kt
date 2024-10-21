@@ -34,6 +34,7 @@ import org.koin.androidx.compose.koinViewModel
 fun PrayerScreen(onAddPrayer: () -> Unit, onSignOut: () -> Unit) {
     val viewModel: PrayerViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val loadingState by viewModel.loadingState.collectAsState()
     val hasMorePages by viewModel.hasMorePages.collectAsState()
 
     var currentPage by remember { mutableIntStateOf(1) }
@@ -53,13 +54,15 @@ fun PrayerScreen(onAddPrayer: () -> Unit, onSignOut: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center
         ) {
-            when (uiState.loadingState) {
+            when (loadingState) {
                 LoadingState.Loading -> CircularProgressIndicator()
                 LoadingState.Success -> {
                     uiState.prayer?.let { prayer ->
                         PrayerContent(
                             prayer = prayer,
-                            onPray = {}
+                            onPray = {
+                                viewModel.prayPrayer(prayer.id)
+                            }
                         )
                     }
                 }
@@ -123,9 +126,11 @@ fun PrayerContent(prayer: Prayer, onPray: () -> Unit) {
             fontSize = 16.sp,
             textAlign = TextAlign.Center
         )
+        Text("${prayer.counter} praying")
         Button(
             onClick = onPray,
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier.padding(top = 16.dp),
+            enabled = !prayer.userPrayed
         ) {
             Text("I pray")
         }
