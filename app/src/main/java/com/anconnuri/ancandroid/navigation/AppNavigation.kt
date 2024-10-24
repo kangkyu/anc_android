@@ -2,9 +2,9 @@ package com.anconnuri.ancandroid.navigation
 
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,7 +18,6 @@ import com.anconnuri.ancandroid.views.PhoneAuthScreen
 import com.anconnuri.ancandroid.views.PrayerScreen
 import com.anconnuri.ancandroid.views.SermonVideosView
 import org.koin.androidx.compose.koinViewModel
-import org.koin.androidx.compose.navigation.koinNavViewModel
 
 @Composable
 fun AppNavigation(
@@ -42,23 +41,28 @@ fun AppNavigation(
             route = "auth"
         ) {
             composable(Screens.LoginScreen.route) {
-                // Try using koinViewModel instead of koinNavViewModel for auth scope
                 val authViewModel: PhoneAuthViewModel = koinViewModel()
                 val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+                val tokenSent by authViewModel.tokenSent.collectAsState()
+
+                LaunchedEffect(isLoggedIn, tokenSent) {
+                    if (isLoggedIn && tokenSent) {
+                        navHostController.navigate(Screens.PrayerScreen.route) {
+                            popUpTo(Screens.LoginScreen.route) { inclusive = true }
+                        }
+                    }
+                }
 
                 PhoneAuthScreen(
                     viewModel = authViewModel,
                     onLoginSuccess = { user ->
-                        user!!.getIdToken(true).addOnCompleteListener { task ->
+                        user?.getIdToken(true)?.addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 val idToken: String = task.result.token.toString()
                                 authViewModel.sendIdTokenToServer(idToken)
                             } else {
                                 Log.d("IdToken", "getIdToken not successful")
                             }
-                        }
-                        navHostController.navigate(Screens.PrayerScreen.route) {
-                            popUpTo(Screens.LoginScreen.route) { inclusive = true }
                         }
                     }
                 )
@@ -67,9 +71,10 @@ fun AppNavigation(
             composable(Screens.PrayerScreen.route) {
                 val authViewModel: PhoneAuthViewModel = koinViewModel()
                 val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+                val tokenSent by authViewModel.tokenSent.collectAsState()
 
                 ProtectedRoute(
-                    isLoggedIn = isLoggedIn,
+                    isAuthenticated = isLoggedIn && tokenSent,
                     onLoginRequired = {
                         navHostController.navigate(Screens.LoginScreen.route) {
                             popUpTo("auth") { inclusive = false }
@@ -91,11 +96,12 @@ fun AppNavigation(
             }
 
             composable(Screens.AddPrayerScreen.route) {
-                val authViewModel: PhoneAuthViewModel = koinViewModel()
+                val authViewModel : PhoneAuthViewModel = koinViewModel()
                 val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+                val tokenSent by authViewModel.tokenSent.collectAsState()
 
                 ProtectedRoute(
-                    isLoggedIn = isLoggedIn,
+                    isAuthenticated = isLoggedIn && tokenSent,
                     onLoginRequired = {
                         navHostController.navigate(Screens.LoginScreen.route) {
                             popUpTo("auth") { inclusive = false }

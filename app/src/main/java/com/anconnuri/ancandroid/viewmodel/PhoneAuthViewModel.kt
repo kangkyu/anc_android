@@ -13,18 +13,13 @@ import com.anconnuri.ancandroid.data.CountryCode
 import com.anconnuri.ancandroid.data.LoginResult
 import com.anconnuri.ancandroid.data.countryCodes
 import com.anconnuri.ancandroid.utils.TokenManager
-import com.anconnuri.ancandroid.views.AuthState
-import com.google.android.gms.tasks.Task
 import com.google.android.play.core.integrity.IntegrityManagerFactory
 import com.google.android.play.core.integrity.IntegrityTokenRequest
-import com.google.android.play.core.integrity.IntegrityTokenResponse
 import com.google.firebase.Firebase
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.Callback
@@ -42,45 +37,79 @@ const val YOUR_PROJECT_NUMBER = 684076341065
 
 class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private val applicationContext by inject<Context>()
-
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-
-    private val _tokenSent = MutableStateFlow(false)
-    val tokenSent = _tokenSent.asStateFlow()
-
     private val tokenManager: TokenManager by inject()
 
+    // User input states
     private val _phoneNumber = MutableStateFlow("")
     val phoneNumber = _phoneNumber.asStateFlow()
-
-    private val _phoneNumberError = MutableStateFlow<String?>(null)
-    val phoneNumberError: StateFlow<String?> = _phoneNumberError
-
-    private val _selectedCountryCode = MutableStateFlow(countryCodes.first())
-    val selectedCountryCode: StateFlow<CountryCode> = _selectedCountryCode
 
     private val _verificationCode = MutableStateFlow("")
     val verificationCode = _verificationCode.asStateFlow()
 
+    private val _selectedCountryCode = MutableStateFlow(countryCodes.first())
+    val selectedCountryCode: StateFlow<CountryCode> = _selectedCountryCode
+
+    // Error states
+    private val _phoneNumberError = MutableStateFlow<String?>(null)
+    val phoneNumberError: StateFlow<String?> = _phoneNumberError
+
     private val _verificationCodeError = MutableStateFlow<String?>(null)
     val verificationCodeError = _verificationCodeError.asStateFlow()
 
-//    private val _isCodeSent = MutableStateFlow(false)
-//    val isCodeSent = _isCodeSent.asStateFlow()
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
 
+    // Auth states
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState = _authState.asStateFlow()
 
-    private val _tokenFetched = MutableStateFlow(false)
-    val tokenFetched: StateFlow<Boolean> = _tokenFetched.asStateFlow()
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn = _isLoggedIn.asStateFlow()
+
+    private val _tokenSent = MutableStateFlow(false)
+    val tokenSent = _tokenSent.asStateFlow()
+
+    private val _integrityCheckPassed = MutableStateFlow(false)
+    val integrityCheckPassed = _integrityCheckPassed.asStateFlow()
+
+    private val _isVerifyingIntegrity = MutableStateFlow(false)
+    val isVerifyingIntegrity = _isVerifyingIntegrity.asStateFlow()
 
     private var verificationId: String = ""
 
+    private fun resetStates() {
+        _authState.value = AuthState.Idle
+        _isLoggedIn.value = false
+        _tokenSent.value = false
+        _phoneNumber.value = ""
+        _verificationCode.value = ""
+        _phoneNumberError.value = null
+        _verificationCodeError.value = null
+        _errorMessage.value = null
+    }
+
+    fun signOut() {
+        Firebase.auth.signOut()
+        resetStates()
+    }
+
+    // Input handling
     fun updatePhoneNumber(number: String) {
         _phoneNumber.value = number
         _phoneNumberError.value = null
     }
 
+    fun updateVerificationCode(code: String) {
+        _verificationCode.value = code
+        _verificationCodeError.value = null
+    }
+
+    fun updateCountryCode(countryCode: CountryCode) {
+        _selectedCountryCode.value = countryCode
+    }
+
+    // Validation
     private fun validatePhoneNumber(): Boolean {
         return when {
             _phoneNumber.value.isEmpty() -> {
@@ -98,38 +127,76 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    fun updateVerificationCode(code: String) {
-        _verificationCode.value = code
-        _verificationCodeError.value = null
+    private fun validateVerificationCode(): Boolean {
+        return when {
+            _verificationCode.value.isEmpty() -> {
+                _verificationCodeError.value = "Verification code cannot be empty"
+                false
+            }
+            else -> {
+                _verificationCodeError.value = null
+                true
+            }
+        }
     }
 
-    private val _isLoggedIn = MutableStateFlow(false)
-    val isLoggedIn = _isLoggedIn.asStateFlow()
+    fun verifyIntegrity() {
+        if (integrityCheckPassed.value || _isVerifyingIntegrity.value) return
 
-    fun signOut() {
-        Firebase.auth.signOut()
-        _authState.value = AuthState.Idle
-        _isLoggedIn.value = false
-        _phoneNumber.value = ""
-        _tokenSent.value = false
-        _phoneNumberError.value = null
-        _verificationCode.value = ""
-        _tokenFetched.value = false
-        _verificationCodeError.value = null
+        _isVerifyingIntegrity.value = true
+        _authState.value = AuthState.Loading
+
+        viewModelScope.launch {
+            try {
+                val nonce = generateNonce()
+                val integrityManager = IntegrityManagerFactory.create(applicationContext)
+
+                integrityManager.requestIntegrityToken(
+                    IntegrityTokenRequest.builder()
+                        .setCloudProjectNumber(YOUR_PROJECT_NUMBER)
+                        .setNonce(nonce)
+                        .build()
+                ).addOnCompleteListener { task ->
+                    viewModelScope.launch {
+                        if (task.isSuccessful) {
+                            _integrityCheckPassed.value = true
+                            _errorMessage.value = null
+                            proceedWithVerification()
+                        } else {
+                            Log.e("IntegrityAPI", "Failed integrity check", task.exception)
+                            _errorMessage.value = "Device verification failed. Please try again."
+                            _authState.value = AuthState.Idle
+                        }
+                        _isVerifyingIntegrity.value = false
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("IntegrityAPI", "Error verifying integrity", e)
+                _errorMessage.value = "Device verification failed. Please try again."
+                _authState.value = AuthState.Idle
+                _isVerifyingIntegrity.value = false
+            }
+        }
     }
 
-    fun updateCountryCode(countryCode: CountryCode) {
-        _selectedCountryCode.value = countryCode
+    private fun generateNonce(): String {
+        val nonce = ByteArray(16)
+        SecureRandom().nextBytes(nonce)
+        return Base64.encodeToString(nonce, Base64.URL_SAFE or Base64.NO_WRAP)
     }
 
     fun sendVerificationCode() {
-        if (!validatePhoneNumber()) {
-            return
+        if (!validatePhoneNumber()) return
+
+        if (!integrityCheckPassed.value) {
+            verifyIntegrity()  // This will handle proceeding with verification if check passes
+        } else {
+            proceedWithVerification()
         }
+    }
 
-        // Clear any previous error
-        _phoneNumberError.value = null
-
+    private fun proceedWithVerification() {
+        _authState.value = AuthState.Loading
         val fullPhoneNumber = "${selectedCountryCode.value.prefix}${phoneNumber.value}"
 
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
@@ -138,7 +205,8 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
             }
 
             override fun onVerificationFailed(e: FirebaseException) {
-                // Handle error
+                _authState.value = AuthState.Idle
+                _phoneNumberError.value = e.message
             }
 
             override fun onCodeSent(
@@ -146,53 +214,37 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
                 token: PhoneAuthProvider.ForceResendingToken
             ) {
                 this@PhoneAuthViewModel.verificationId = verificationId
-//                _isCodeSent.value = true
                 _authState.value = AuthState.CodeSent
             }
         }
-        val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(fullPhoneNumber)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setCallbacks(callbacks)
-            .build()
-        PhoneAuthProvider.verifyPhoneNumber(options)
+
+        PhoneAuthProvider.verifyPhoneNumber(
+            PhoneAuthOptions.newBuilder(auth)
+                .setPhoneNumber(fullPhoneNumber)
+                .setTimeout(60L, TimeUnit.SECONDS)
+                .setCallbacks(callbacks)
+                .build()
+        )
     }
 
     fun verifyCode() {
-        if (!validateVerificationCode()) {
-            return
-        }
+        if (!validateVerificationCode()) return
+
+        _authState.value = AuthState.Loading
         val credential = PhoneAuthProvider.getCredential(verificationId, _verificationCode.value)
         signInWithPhoneAuthCredential(credential)
-    }
-
-    private fun validateVerificationCode(): Boolean {
-        return when {
-            _verificationCode.value.isEmpty() -> {
-                _verificationCodeError.value = "Verification code cannot be empty"
-                false
-            }
-//            _verificationCode.value.length != 6 -> {
-//                _verificationCodeError.value = "Verification code must be 6 digits"
-//                false
-//            }
-            else -> {
-                _verificationCodeError.value = null
-                true
-            }
-        }
     }
 
     private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("Login", "successful login")
                     _isLoggedIn.value = true
                     _authState.value = AuthState.Success(auth.currentUser)
+                    auth.currentUser?.getIdToken(true)?.addOnSuccessListener { result ->
+                        sendIdTokenToServer(result.token ?: "")
+                    }
                 } else {
-                    // Sign in failed
-                    Log.d("Login", "failed login")
                     _verificationCodeError.value = task.exception?.message ?: "Sign in failed"
                     _authState.value = AuthState.CodeSent
                 }
@@ -200,100 +252,38 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     }
 
     fun sendIdTokenToServer(idToken: String) {
-        if (!tokenSent.value) {
+        if (tokenSent.value) return
 
-            val client = OkHttpClient()
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url(YOUR_SERVER_URL)
+            .header("Authorization", "Bearer $idToken")
+            .post(FormBody.Builder().build())
+            .build()
 
-            val requestBody = FormBody.Builder()
-                .build()
-
-            val request = Request.Builder()
-                .url(YOUR_SERVER_URL) // your server URL
-                .header("Authorization", "Bearer $idToken")
-                .post(requestBody)
-                .build()
-
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    // TODO: Show an error message to the user
-                    // TODO: Retry the request after a delay
-                    Log.e("SignIn", "Failed to send ID token", e)
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                viewModelScope.launch {
+                    resetStates()
                 }
-
-                override fun onResponse(call: Call, response: Response) {
-                    if (response.isSuccessful) {
-                        // Handle successful response
-                        Log.d("SignIn", "ID token sent successfully")
-
-                        _tokenSent.value = true
-                        // TODO: Navigate to the home screen or perform other actions
-                        viewModelScope.launch {
-                            withContext(Dispatchers.Main) {
-                                response.body?.let {
-                                    // Use token from server
-                                    val responseJson = it.string()
-                                    it.close()
-
-                                    try {
-                                        val jsonBuilder = Json { ignoreUnknownKeys = true }
-                                        val loginResult =
-                                            jsonBuilder.decodeFromString<LoginResult>(responseJson)
-
-                                        tokenManager.saveToken(loginResult.token)
-                                    } catch (e: Exception) {
-                                        Log.e("SignIn", "Error parsing response", e)
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // Handle error response
-                        Log.e("SignIn", "Error sending ID token: ${response.code}")
-                        viewModelScope.launch {
-                            withContext(Dispatchers.Main) {
-                                // Show error message to the user
-                            }
-                        }
-                    }
-                }
-            })
-        }
-    }
-
-    fun getIntegrityToken() {
-        viewModelScope.launch {
-            try {
-
-                val result = withContext(Dispatchers.IO) {
-                    val nonce: String = generateNonce()
-                    val integrityManager = IntegrityManagerFactory.create(applicationContext)
-
-                    val integrityTokenResponse: Task<IntegrityTokenResponse> =
-                        integrityManager.requestIntegrityToken(
-                            IntegrityTokenRequest.builder()
-                                .setCloudProjectNumber(YOUR_PROJECT_NUMBER)
-                                .setNonce(nonce)
-                                .build()
-                        )
-                    integrityTokenResponse.addOnSuccessListener { resp ->
-                        val integrityToken: String = resp.token()
-                        _tokenFetched.value = true
-                        // Store the token or use it immediately
-                    }
-                    integrityTokenResponse.addOnFailureListener { e ->
-                        Log.e("IntegrityAPI", "Failed integration token fetch", e)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("IntegrityAPI", "Error getting integrity token", e)
-                // Handle the error, possibly by returning a default value or throwing an exception
             }
-        }
-    }
 
-    private fun generateNonce(): String {
-        val nonce = ByteArray(16) // 16 bytes = 128 bits
-        SecureRandom().nextBytes(nonce)
-        return Base64.encodeToString(nonce, Base64.URL_SAFE or Base64.NO_WRAP)
+            override fun onResponse(call: Call, response: Response) {
+                viewModelScope.launch {
+                    response.body?.let {
+                        try {
+                            val responseJson = it.string()
+                            it.close()
+                            val loginResult = Json { ignoreUnknownKeys = true }
+                                .decodeFromString<LoginResult>(responseJson)
+                            tokenManager.saveToken(loginResult.token)
+                            _tokenSent.value = true
+                        } catch (e: Exception) {
+                            resetStates()
+                        }
+                    }
+                }
+            }
+        })
     }
 }
