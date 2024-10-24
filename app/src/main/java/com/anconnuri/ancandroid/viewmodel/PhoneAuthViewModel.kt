@@ -62,6 +62,9 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private val _verificationCode = MutableStateFlow("")
     val verificationCode = _verificationCode.asStateFlow()
 
+    private val _verificationCodeError = MutableStateFlow<String?>(null)
+    val verificationCodeError = _verificationCodeError.asStateFlow()
+
 //    private val _isCodeSent = MutableStateFlow(false)
 //    val isCodeSent = _isCodeSent.asStateFlow()
 
@@ -97,6 +100,7 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
 
     fun updateVerificationCode(code: String) {
         _verificationCode.value = code
+        _verificationCodeError.value = null
     }
 
     private val _isLoggedIn = MutableStateFlow(false)
@@ -111,6 +115,7 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
         _phoneNumberError.value = null
         _verificationCode.value = ""
         _tokenFetched.value = false
+        _verificationCodeError.value = null
     }
 
     fun updateCountryCode(countryCode: CountryCode) {
@@ -154,8 +159,28 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     }
 
     fun verifyCode() {
+        if (!validateVerificationCode()) {
+            return
+        }
         val credential = PhoneAuthProvider.getCredential(verificationId, _verificationCode.value)
         signInWithPhoneAuthCredential(credential)
+    }
+
+    private fun validateVerificationCode(): Boolean {
+        return when {
+            _verificationCode.value.isEmpty() -> {
+                _verificationCodeError.value = "Verification code cannot be empty"
+                false
+            }
+//            _verificationCode.value.length != 6 -> {
+//                _verificationCodeError.value = "Verification code must be 6 digits"
+//                false
+//            }
+            else -> {
+                _verificationCodeError.value = null
+                true
+            }
+        }
     }
 
     private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
@@ -168,7 +193,8 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
                 } else {
                     // Sign in failed
                     Log.d("Login", "failed login")
-                    _authState.value = AuthState.Error(task.exception?.message ?: "Sign in failed")
+                    _verificationCodeError.value = task.exception?.message ?: "Sign in failed"
+                    _authState.value = AuthState.CodeSent
                 }
             }
     }

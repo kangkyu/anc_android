@@ -125,6 +125,7 @@ fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
 @Composable
 fun VerificationCodeInput(viewModel: PhoneAuthViewModel) {
     val verificationCode by viewModel.verificationCode.collectAsState()
+    val verificationCodeError by viewModel.verificationCodeError.collectAsState()
 
     Column(
         modifier = Modifier
@@ -137,8 +138,19 @@ fun VerificationCodeInput(viewModel: PhoneAuthViewModel) {
             value = verificationCode,
             onValueChange = { code -> viewModel.updateVerificationCode(code) },
             label = { Text("Verification Code") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = verificationCodeError != null,
         )
+        verificationCodeError?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 4.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = { viewModel.verifyCode() },
