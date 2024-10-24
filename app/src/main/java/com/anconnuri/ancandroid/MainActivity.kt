@@ -110,7 +110,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        ChurchAPI.shared.close()
     }
 
     fun openBrowser(url: String) {

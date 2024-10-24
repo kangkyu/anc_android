@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,24 +33,33 @@ import coil.request.ImageRequest
 fun JuboView() {
     val juboViewModel: JuboViewModel = koinViewModel()
     val juboUIState by juboViewModel.juboUIState.collectAsStateWithLifecycle()
-    val loadState = juboUIState.loadingState
 
-    when (loadState) {
+    // Remember the last successful state
+    val lastSuccessfulState = remember(juboUIState.externalURL) {
+        juboUIState.externalURL
+    }
+
+    when (juboUIState.loadingState) {
         LoadingState.Loading -> {
             JuboLoadingView()
         }
 
         LoadingState.Success -> {
-            val externalLink = juboUIState.externalURL
-            externalLink?.let { JuboImageView(it) }
+            juboUIState.externalURL?.let { JuboImageView(it) }
         }
 
         LoadingState.Failure -> {
-            Text("Failure")
+            ErrorView(
+                message = juboUIState.error ?: "Failed to load",
+                onRetry = { juboViewModel.retryLoading() }
+            )
         }
 
         LoadingState.Error -> {
-            Text("Error")
+            ErrorView(
+                message = juboUIState.error ?: "An error occurred",
+                onRetry = { juboViewModel.retryLoading() }
+            )
         }
     }
 }
@@ -114,5 +124,22 @@ fun JuboLoadingView() {
     ) {
         Text("Loading...")
 //        CircularProgressIndicator()
+    }
+}
+
+@Composable
+fun ErrorView(
+    message: String,
+    onRetry: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(message)
+        Button(onClick = onRetry) {
+            Text("Retry")
+        }
     }
 }
