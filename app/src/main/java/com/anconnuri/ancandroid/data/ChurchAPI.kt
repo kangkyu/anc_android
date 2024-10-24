@@ -118,10 +118,6 @@ class ChurchAPI {
         }
     }
 
-    fun close() {
-        client.close()
-    }
-
     suspend fun prayPrayer(tokenString: String, id: Int): Result<Prayer?> {
         return runCatching {
             val response: HttpResponse = client.post("${baseUrl}/prayers/$id/pray") {

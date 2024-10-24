@@ -1,5 +1,6 @@
 package com.anconnuri.ancandroid.views
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,12 +12,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -30,11 +36,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.anconnuri.ancandroid.data.CountryCode
 import com.anconnuri.ancandroid.data.countryCodes
 import com.anconnuri.ancandroid.utils.NanpVisualTransformation
+import com.anconnuri.ancandroid.viewmodel.AuthState
 import com.anconnuri.ancandroid.viewmodel.PhoneAuthViewModel
 import com.google.firebase.auth.FirebaseUser
 
@@ -45,17 +53,59 @@ fun PhoneAuthScreen(
     onLoginSuccess: (FirebaseUser?) -> Unit
 ) {
     val authState by viewModel.authState.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
-    when (authState) {
-        is AuthState.Loading -> LoadingIndicator()
-        is AuthState.Error -> ErrorMessage((authState as AuthState.Error).message)
-        is AuthState.Success -> {
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Success) {
             onLoginSuccess((authState as AuthState.Success).user)
         }
-        is AuthState.CodeSent -> VerificationCodeInput(viewModel)
-        is AuthState.Idle -> PhoneNumberInput(viewModel)
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Error message at the top if exists
+        errorMessage?.let { error ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Warning,
+                        contentDescription = "Error",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+
+        // Main content
+        when (authState) {
+            is AuthState.CodeSent -> VerificationCodeInput(viewModel)
+            is AuthState.Loading -> LoadingIndicator()
+            else -> PhoneNumberInput(viewModel)
+        }
     }
 }
+
+// Keep your existing PhoneNumberInput, VerificationCodeInput, LoadingIndicator, and CountryCodeSelector
 
 @Composable
 fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
@@ -64,10 +114,11 @@ fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
     val selectedCountryCode by viewModel.selectedCountryCode.collectAsState()
     val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
 
-    val tokenFetched by viewModel.tokenFetched.collectAsState()
+    val integrityCheckPassed by viewModel.integrityCheckPassed.collectAsState()
+    // Initial integrity check
     LaunchedEffect(Unit) {
-        if (!tokenFetched) {
-            viewModel.getIntegrityToken()
+        if (!integrityCheckPassed) {
+            viewModel.verifyIntegrity()
         }
     }
 
@@ -168,16 +219,6 @@ fun LoadingIndicator() {
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator()
-    }
-}
-
-@Composable
-fun ErrorMessage(message: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(message)
     }
 }
 

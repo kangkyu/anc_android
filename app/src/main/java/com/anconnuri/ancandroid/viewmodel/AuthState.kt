@@ -1,4 +1,4 @@
-package com.anconnuri.ancandroid.views
+package com.anconnuri.ancandroid.viewmodel
 
 import com.google.firebase.auth.FirebaseUser
 
@@ -7,5 +7,4 @@ sealed class AuthState {
     object Loading : AuthState()
     object CodeSent : AuthState()
     data class Success(val user: FirebaseUser?) : AuthState()
-    data class Error(val message: String) : AuthState()
 }
