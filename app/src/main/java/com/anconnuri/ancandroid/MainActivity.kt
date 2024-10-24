@@ -108,10 +108,6 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     fun openBrowser(url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         startActivity(intent)

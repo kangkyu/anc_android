@@ -64,54 +64,52 @@ fun JuboView() {
     }
 }
 
-@Composable
-fun JuboImageView(externalLink: ExternalURL) {
-    // set up all transformation states
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-        scale *= zoomChange
-        offset += offsetChange
-    }
-    JuboImage(
-        modifier = Modifier
-            // apply other transformations like rotation and zoom
-            // on the pizza slice emoji
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = scale * offset.x,
-                translationY = scale * offset.y
-            )
-            // add transformable to listen to multitouch transformation events
-            // after offset
-            .transformable(state = state)
-            .background(MaterialTheme.colorScheme.background)
-            .fillMaxSize(),
-        externalLink = externalLink
-    )
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun JuboImage(modifier: Modifier = Modifier, externalLink: ExternalURL) {
-
+fun JuboImageView(externalLink: ExternalURL) {
     val pagerState = rememberPagerState(pageCount = {
         2
     })
+
     Column(
-        modifier = modifier,
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         VerticalPager(state = pagerState) { page ->
+            // Move zoom/pan state inside the pager item
+            var scale by remember { mutableStateOf(1f) }
+            var offset by remember { mutableStateOf(Offset.Zero) }
 
-            AsyncImage(
-                ImageRequest.Builder(LocalContext.current)
-                    .data(externalLink.urls[page])
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-            )
+            val minScale = 1f
+            val maxScale = 3f
+
+            val state = rememberTransformableState { zoomChange, panChange, _ ->
+                scale = (scale * zoomChange).coerceIn(minScale, maxScale)
+                if (scale > 1f) {
+                    offset += panChange
+                }
+            }
+
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(externalLink.urls[page])
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                            translationX = offset.x,
+                            translationY = offset.y
+                        )
+                        .transformable(state = state)
+                )
+            }
         }
     }
 }
