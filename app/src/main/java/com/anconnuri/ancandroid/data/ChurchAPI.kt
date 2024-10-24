@@ -2,6 +2,7 @@ package com.anconnuri.ancandroid.data
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -22,7 +23,15 @@ class ChurchAPI {
         val shared = ChurchAPI()
     }
 
-    private val client = HttpClient()
+    // Make client lazy to ensure single instance
+    private val client by lazy {
+        HttpClient {
+            // Add any client configurations here
+            install(HttpTimeout) {
+                requestTimeoutMillis = 15000
+            }
+        }
+    }
 
     private val jsonBuilder = Json { ignoreUnknownKeys = true }
 

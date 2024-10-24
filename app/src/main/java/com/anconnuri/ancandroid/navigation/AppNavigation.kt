@@ -4,10 +4,12 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
 import com.anconnuri.ancandroid.viewmodel.PhoneAuthViewModel
 import com.anconnuri.ancandroid.views.AddPrayerRequestScreen
 import com.anconnuri.ancandroid.views.ChurchInfoView
@@ -16,14 +18,12 @@ import com.anconnuri.ancandroid.views.PhoneAuthScreen
 import com.anconnuri.ancandroid.views.PrayerScreen
 import com.anconnuri.ancandroid.views.SermonVideosView
 import org.koin.androidx.compose.koinViewModel
+import org.koin.androidx.compose.navigation.koinNavViewModel
 
 @Composable
 fun AppNavigation(
     navHostController: NavHostController = rememberNavController()
 ) {
-    val authViewModel: PhoneAuthViewModel = koinViewModel()
-    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
-
     NavHost(
         navController = navHostController,
         startDestination = Screens.SermonVideosScreen.route
@@ -37,60 +37,74 @@ fun AppNavigation(
         composable(Screens.HomeScreen.route) {
             ChurchInfoView()
         }
-        composable(Screens.PrayerScreen.route) {
-            ProtectedRoute(
-                isLoggedIn = isLoggedIn,
-                onLoginRequired = {
-                    navHostController.navigate(Screens.LoginScreen.route) {
-                        popUpTo(Screens.PrayerScreen.route) { inclusive = true }
-                    }
-                }
-            ) {
-                PrayerScreen(
-                    onAddPrayer = {
-                        navHostController.navigate(Screens.AddPrayerScreen.route)
-                    },
-                    onSignOut = {
-                        authViewModel.signOut()
-                        navHostController.navigate(Screens.LoginScreen.route) {
-                            popUpTo(Screens.PrayerScreen.route) { inclusive = true }
+        navigation(
+            startDestination = Screens.LoginScreen.route,
+            route = "auth"
+        ) {
+            composable(Screens.LoginScreen.route) {
+                // Try using koinViewModel instead of koinNavViewModel for auth scope
+                val authViewModel: PhoneAuthViewModel = koinViewModel()
+                val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
+                PhoneAuthScreen(
+                    viewModel = authViewModel,
+                    onLoginSuccess = { user ->
+                        user!!.getIdToken(true).addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val idToken: String = task.result.token.toString()
+                                authViewModel.sendIdTokenToServer(idToken)
+                            } else {
+                                Log.d("IdToken", "getIdToken not successful")
+                            }
+                        }
+                        navHostController.navigate(Screens.PrayerScreen.route) {
+                            popUpTo(Screens.LoginScreen.route) { inclusive = true }
                         }
                     }
                 )
             }
-        }
-        composable(Screens.AddPrayerScreen.route) {
-            ProtectedRoute(
-                isLoggedIn = isLoggedIn,
-                onLoginRequired = {
-                    navHostController.navigate(Screens.LoginScreen.route) {
-                        popUpTo(Screens.AddPrayerScreen.route) { inclusive = true }
-                    }
-                }
-            ) {
-                AddPrayerRequestScreen(navHostController)
-            }
-        }
-        composable(Screens.LoginScreen.route) {
-            PhoneAuthScreen(
-                viewModel = authViewModel,
-                onLoginSuccess = { user ->
-                    user!!.getIdToken(true).addOnCompleteListener { task ->
 
-                        if (task.isSuccessful) {
-                            val idToken: String = task.result.token.toString()
-                            // Send token to your backend via HTTPS
-                            // TODO: Fix it not to be triggered multiple times
-                            authViewModel.sendIdTokenToServer(idToken)
-                        } else {
-                            Log.d("IdToken", "getIdToken not successful")
-                            // Handle error -> task.getException();
+            composable(Screens.PrayerScreen.route) {
+                val authViewModel: PhoneAuthViewModel = koinViewModel()
+                val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
+                ProtectedRoute(
+                    isLoggedIn = isLoggedIn,
+                    onLoginRequired = {
+                        navHostController.navigate(Screens.LoginScreen.route) {
+                            popUpTo("auth") { inclusive = false }
                         }
                     }
-                    // Redirect to target screen
-                    navHostController.navigate(Screens.PrayerScreen.route)
+                ) {
+                    PrayerScreen(
+                        onAddPrayer = {
+                            navHostController.navigate(Screens.AddPrayerScreen.route)
+                        },
+                        onSignOut = {
+                            authViewModel.signOut()
+                            navHostController.navigate(Screens.LoginScreen.route) {
+                                popUpTo("auth") { inclusive = false }
+                            }
+                        }
+                    )
                 }
-            )
+            }
+
+            composable(Screens.AddPrayerScreen.route) {
+                val authViewModel: PhoneAuthViewModel = koinViewModel()
+                val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
+                ProtectedRoute(
+                    isLoggedIn = isLoggedIn,
+                    onLoginRequired = {
+                        navHostController.navigate(Screens.LoginScreen.route) {
+                            popUpTo("auth") { inclusive = false }
+                        }
+                    }
+                ) {
+                    AddPrayerRequestScreen(navHostController)
+                }
+            }
         }
     }
 }
