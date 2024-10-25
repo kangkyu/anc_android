@@ -23,6 +23,10 @@ import org.koin.androidx.compose.koinViewModel
 fun AppNavigation(
     navHostController: NavHostController = rememberNavController()
 ) {
+    val authViewModel: PhoneAuthViewModel = koinViewModel()
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+    val tokenSent by authViewModel.tokenSent.collectAsState()
+
     NavHost(
         navController = navHostController,
         startDestination = Screens.SermonVideosScreen.route
@@ -41,9 +45,6 @@ fun AppNavigation(
             route = "auth"
         ) {
             composable(Screens.LoginScreen.route) {
-                val authViewModel: PhoneAuthViewModel = koinViewModel()
-                val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
-                val tokenSent by authViewModel.tokenSent.collectAsState()
 
                 LaunchedEffect(isLoggedIn, tokenSent) {
                     if (isLoggedIn && tokenSent) {
@@ -69,9 +70,6 @@ fun AppNavigation(
             }
 
             composable(Screens.PrayerScreen.route) {
-                val authViewModel: PhoneAuthViewModel = koinViewModel()
-                val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
-                val tokenSent by authViewModel.tokenSent.collectAsState()
 
                 ProtectedRoute(
                     isAuthenticated = isLoggedIn && tokenSent,
@@ -96,9 +94,6 @@ fun AppNavigation(
             }
 
             composable(Screens.AddPrayerScreen.route) {
-                val authViewModel : PhoneAuthViewModel = koinViewModel()
-                val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
-                val tokenSent by authViewModel.tokenSent.collectAsState()
 
                 ProtectedRoute(
                     isAuthenticated = isLoggedIn && tokenSent,

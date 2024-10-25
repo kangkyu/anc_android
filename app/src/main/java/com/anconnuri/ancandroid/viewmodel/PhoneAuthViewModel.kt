@@ -2,7 +2,6 @@ package com.anconnuri.ancandroid.viewmodel
 
 
 import android.content.Context
-import android.util.Base64
 import androidx.lifecycle.ViewModel
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.*
@@ -12,9 +11,8 @@ import androidx.lifecycle.viewModelScope
 import com.anconnuri.ancandroid.data.CountryCode
 import com.anconnuri.ancandroid.data.LoginResult
 import com.anconnuri.ancandroid.data.countryCodes
+import com.anconnuri.ancandroid.utils.AppIntegrityManager
 import com.anconnuri.ancandroid.utils.TokenManager
-import com.google.android.play.core.integrity.IntegrityManagerFactory
-import com.google.android.play.core.integrity.IntegrityTokenRequest
 import com.google.firebase.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +28,6 @@ import okhttp3.Response
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.IOException
-import java.security.SecureRandom
 
 const val YOUR_SERVER_URL = "https://anc-backend-7502ef948715.herokuapp.com/auth/firebase-auth"
 const val YOUR_PROJECT_NUMBER = 684076341065
@@ -39,6 +36,7 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private val applicationContext by inject<Context>()
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val tokenManager: TokenManager by inject()
+    private val appIntegrityManager: AppIntegrityManager by inject()
 
     // User input states
     private val _phoneNumber = MutableStateFlow("")
@@ -70,11 +68,9 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private val _tokenSent = MutableStateFlow(false)
     val tokenSent = _tokenSent.asStateFlow()
 
-    private val _integrityCheckPassed = MutableStateFlow(false)
-    val integrityCheckPassed = _integrityCheckPassed.asStateFlow()
-
-    private val _isVerifyingIntegrity = MutableStateFlow(false)
-    val isVerifyingIntegrity = _isVerifyingIntegrity.asStateFlow()
+    val integrityCheckPassed = appIntegrityManager.integrityCheckPassed
+    val isVerifyingIntegrity = appIntegrityManager.isVerifyingIntegrity
+    val integrityErrorMessage = appIntegrityManager.errorMessage
 
     private var verificationId: String = ""
 
@@ -140,59 +136,21 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    fun verifyIntegrity() {
-        if (integrityCheckPassed.value || _isVerifyingIntegrity.value) return
-
-        _isVerifyingIntegrity.value = true
-        _authState.value = AuthState.Loading
-
-        viewModelScope.launch {
-            try {
-                val nonce = generateNonce()
-                val integrityManager = IntegrityManagerFactory.create(applicationContext)
-
-                integrityManager.requestIntegrityToken(
-                    IntegrityTokenRequest.builder()
-                        .setCloudProjectNumber(YOUR_PROJECT_NUMBER)
-                        .setNonce(nonce)
-                        .build()
-                ).addOnCompleteListener { task ->
-                    viewModelScope.launch {
-                        if (task.isSuccessful) {
-                            _integrityCheckPassed.value = true
-                            _errorMessage.value = null
-                            proceedWithVerification()
-                        } else {
-                            Log.e("IntegrityAPI", "Failed integrity check", task.exception)
-                            _errorMessage.value = "Device verification failed. Please try again."
-                            _authState.value = AuthState.Idle
-                        }
-                        _isVerifyingIntegrity.value = false
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("IntegrityAPI", "Error verifying integrity", e)
-                _errorMessage.value = "Device verification failed. Please try again."
-                _authState.value = AuthState.Idle
-                _isVerifyingIntegrity.value = false
-            }
-        }
-    }
-
-    private fun generateNonce(): String {
-        val nonce = ByteArray(16)
-        SecureRandom().nextBytes(nonce)
-        return Base64.encodeToString(nonce, Base64.URL_SAFE or Base64.NO_WRAP)
-    }
-
     fun sendVerificationCode() {
         if (!validatePhoneNumber()) return
 
         if (!integrityCheckPassed.value) {
-            verifyIntegrity()  // This will handle proceeding with verification if check passes
-        } else {
-            proceedWithVerification()
+            _authState.value = AuthState.Loading
+            appIntegrityManager.verifyIntegrity(viewModelScope) { passed ->
+                if (passed) {
+                    proceedWithVerification()
+                } else {
+                    _authState.value = AuthState.Idle
+                }
+            }
+            return
         }
+        proceedWithVerification()
     }
 
     private fun proceedWithVerification() {
@@ -264,7 +222,8 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 viewModelScope.launch {
-                    resetStates()
+                    _errorMessage.value = "Failed to communicate with server"
+                    _tokenSent.value = false
                 }
             }
 
@@ -279,7 +238,8 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
                             tokenManager.saveToken(loginResult.token)
                             _tokenSent.value = true
                         } catch (e: Exception) {
-                            resetStates()
+                            _errorMessage.value = "Server response error"
+                            _tokenSent.value = false
                         }
                     }
                 }

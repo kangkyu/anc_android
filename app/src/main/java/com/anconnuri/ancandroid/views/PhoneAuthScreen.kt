@@ -114,14 +114,6 @@ fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
     val selectedCountryCode by viewModel.selectedCountryCode.collectAsState()
     val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
 
-    val integrityCheckPassed by viewModel.integrityCheckPassed.collectAsState()
-    // Initial integrity check
-    LaunchedEffect(Unit) {
-        if (!integrityCheckPassed) {
-            viewModel.verifyIntegrity()
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
