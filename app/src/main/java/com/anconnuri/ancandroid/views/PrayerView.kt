@@ -1,16 +1,18 @@
 package com.anconnuri.ancandroid.views
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anconnuri.ancandroid.data.LoadingState
 import com.anconnuri.ancandroid.data.Prayer
+import com.anconnuri.ancandroid.ui.theme.customBlue
 import com.anconnuri.ancandroid.viewmodel.PrayerViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -45,94 +48,159 @@ fun PrayerScreen(onAddPrayer: () -> Unit, onSignOut: () -> Unit) {
         }
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.Center
-        ) {
-            when (loadingState) {
-                LoadingState.Loading -> CircularProgressIndicator()
-                LoadingState.Success -> {
-                    uiState.prayer?.let { prayer ->
-                        PrayerContent(
-                            prayer = prayer,
-                            onPray = {
-                                viewModel.prayPrayer(prayer.id)
-                            }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Top Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = {
+                        currentPage -= 1
+                        viewModel.setHasMorePages(true)
+                    },
+                    enabled = currentPage > 1
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("<", modifier = Modifier.padding(end = 4.dp))
+                        Text("이전")
+                    }
+                }
+
+                Text(
+                    "기도제목",
+                    style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.ExtraBold),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+
+                TextButton(
+                    onClick = { currentPage += 1 },
+                    enabled = hasMorePages
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("다음")
+                        Text(">", modifier = Modifier.padding(start = 4.dp))
+                    }
+                }
+            }
+
+            // Scrollable Content Area
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(bottom = 140.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                when (loadingState) {
+                    LoadingState.Loading -> CircularProgressIndicator()
+                    LoadingState.Success -> {
+                        uiState.prayer?.let { prayer ->
+                            PrayerContent(
+                                prayer = prayer,
+                                onPray = {
+                                    viewModel.prayPrayer(prayer.id)
+                                }
+                            )
+                        }
+                    }
+                    LoadingState.Error, LoadingState.Failure -> {
+                        Text(
+                            uiState.error ?: "An error occurred",
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
-                LoadingState.Error, LoadingState.Failure -> {
-                    Text(uiState.error ?: "An error occurred", color = MaterialTheme.colorScheme.error)
-                }
             }
         }
 
-        Row {
-            Button(
-                onClick = {
-                    currentPage -= 1
-                    viewModel.setHasMorePages(true)
-                },
-                enabled = currentPage > 1
-            ) {
-                Text("Backward")
-            }
-
-            Spacer(modifier = Modifier.weight(1f)) // Push buttons to the sides
-
-            Button(
-                onClick = {
-                    currentPage += 1
-                },
-                enabled = hasMorePages
-            ) {
-                Text("Forward")
-            }
-        }
-
-        Button(
-            onClick = onAddPrayer,
-            modifier = Modifier.padding(16.dp)
+        // Bottom Buttons
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Add Prayer")
-        }
+            Button(
+                onClick = onAddPrayer,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("내 기도제목 올리기")
+            }
 
-        Button(
-            onClick = onSignOut,
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text("Log Out")
+            Button(
+                onClick = onSignOut,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("로그아웃")
+            }
         }
     }
 }
 
 @Composable
 fun PrayerContent(prayer: Prayer, onPray: () -> Unit) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxHeight()
+            .padding(horizontal = 16.dp)
     ) {
-        Text(
-            text = prayer.content,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center
-        )
-        Text("${prayer.counter} praying")
-        Button(
-            onClick = onPray,
-            modifier = Modifier.padding(top = 16.dp),
-            enabled = !prayer.userPrayed
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Text("I pray")
+            // Prayer content at the top
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = prayer.content,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
+            Column() {
+
+                Text(
+                    "${prayer.counter} 명이 기도했습니다",
+                    modifier = Modifier.fillMaxWidth().padding(),
+                    textAlign = TextAlign.End
+                )
+                // Pray button at the bottom
+                Button(
+                    onClick = onPray,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    enabled = !prayer.userPrayed
+                ) {
+                    Text("기도합니다")
+                }
+            }
         }
     }
 }

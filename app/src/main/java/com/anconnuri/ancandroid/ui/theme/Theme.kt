@@ -17,11 +17,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+val customBlue = Color(0xFF0054A7)
+
 private val lightScheme = lightColorScheme(
-    primary = primaryLight,
-    onPrimary = onPrimaryLight,
-    primaryContainer = primaryContainerLight,
-    onPrimaryContainer = onPrimaryContainerLight,
+    primary = customBlue,
+    onPrimary = Color.White,
+    primaryContainer = customBlue.copy(alpha = 0.12f),
+    onPrimaryContainer = customBlue,
     secondary = secondaryLight,
     onSecondary = onSecondaryLight,
     secondaryContainer = secondaryContainerLight,
@@ -56,10 +58,10 @@ private val lightScheme = lightColorScheme(
 )
 
 private val darkScheme = darkColorScheme(
-    primary = primaryDark,
-    onPrimary = onPrimaryDark,
-    primaryContainer = primaryContainerDark,
-    onPrimaryContainer = onPrimaryContainerDark,
+    primary = customBlue.copy(alpha = 0.8f),
+    onPrimary = Color.White,
+    primaryContainer = customBlue.copy(alpha = 0.16f),
+    onPrimaryContainer = customBlue.copy(alpha = 0.8f),
     secondary = secondaryDark,
     onSecondary = onSecondaryDark,
     secondaryContainer = secondaryContainerDark,
@@ -262,14 +264,28 @@ fun ANCAndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
-    content: @Composable() () -> Unit
+    content: @Composable () -> Unit
 ) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (darkTheme) {
+                // Gets colors from system wallpaper
+                dynamicDarkColorScheme(context).copy(
+                    // Override specific colors while keeping others dynamic
+                    primary = customBlue,
+                    // You can override other colors too
+                    secondary = customBlue.copy(alpha = 0.7f),
+                    // primaryContainer = CustomBlue.copy(alpha = 0.1f),
+                    // etc.
+                )
+            } else {
+                dynamicLightColorScheme(context).copy(
+                    primary = customBlue,
+                    secondary = customBlue.copy(alpha = 0.7f),
+                )
+            }
         }
-
         darkTheme -> darkScheme
         else -> lightScheme
     }
@@ -289,4 +305,3 @@ fun ANCAndroidTheme(
         content = content
     )
 }
-

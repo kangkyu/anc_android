@@ -109,11 +109,11 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private fun validatePhoneNumber(): Boolean {
         return when {
             _phoneNumber.value.isEmpty() -> {
-                _phoneNumberError.value = "Phone number cannot be empty"
+                _phoneNumberError.value = "전화번호를 입력해주세요"
                 false
             }
             _phoneNumber.value.length != 10 -> {
-                _phoneNumberError.value = "Phone number must be 10 digits"
+                _phoneNumberError.value = "휴대폰 번호는 10자리를 입력해주세요"
                 false
             }
             else -> {
@@ -126,7 +126,7 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
     private fun validateVerificationCode(): Boolean {
         return when {
             _verificationCode.value.isEmpty() -> {
-                _verificationCodeError.value = "Verification code cannot be empty"
+                _verificationCodeError.value = "인증 코드를 입력해주세요"
                 false
             }
             else -> {
@@ -155,7 +155,7 @@ class PhoneAuthViewModel : ViewModel(), KoinComponent {
 
     private fun proceedWithVerification() {
         _authState.value = AuthState.Loading
-        val fullPhoneNumber = "${selectedCountryCode.value.prefix}${phoneNumber.value}"
+        val fullPhoneNumber = "+1${phoneNumber.value}"
 
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
