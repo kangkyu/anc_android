@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -36,11 +38,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.anconnuri.ancandroid.data.CountryCode
 import com.anconnuri.ancandroid.data.countryCodes
+import com.anconnuri.ancandroid.ui.theme.customBlue
 import com.anconnuri.ancandroid.utils.NanpVisualTransformation
 import com.anconnuri.ancandroid.viewmodel.AuthState
 import com.anconnuri.ancandroid.viewmodel.PhoneAuthViewModel
@@ -65,6 +70,8 @@ fun PhoneAuthScreen(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text("휴대폰 인증", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.ExtraBold), color = customBlue)
+
         // Error message at the top if exists
         errorMessage?.let { error ->
             Card(
@@ -105,8 +112,6 @@ fun PhoneAuthScreen(
     }
 }
 
-// Keep your existing PhoneNumberInput, VerificationCodeInput, LoadingIndicator, and CountryCodeSelector
-
 @Composable
 fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
     val phoneNumber by viewModel.phoneNumber.collectAsState()
@@ -125,18 +130,18 @@ fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Bottom
         ) {
-            CountryCodeSelector(
-                selectedCountryCode = selectedCountryCode,
-                onSelectionChange = { viewModel.updateCountryCode(it) },
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+//            CountryCodeSelector(
+//                selectedCountryCode = selectedCountryCode,
+//                onSelectionChange = { viewModel.updateCountryCode(it) },
+//            )
+//            Spacer(modifier = Modifier.width(8.dp))
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { number ->
                     val stripped = number.replace(Regex("[^0-9]"), "")
                     viewModel.updatePhoneNumber(stripped.take(10))
                 },
-                label = { Text("Phone Number") },
+                label = { Text("휴대폰 번호 입력") },
                 placeholder = { Text("(234) 567-8900", color = placeholderColor) },
                 modifier = Modifier.weight(1f),
                 isError = phoneNumberError != null,
@@ -160,7 +165,7 @@ fun PhoneNumberInput(viewModel: PhoneAuthViewModel) {
             onClick = { viewModel.sendVerificationCode() },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Send Verification Code")
+            Text("확인", modifier = Modifier.padding(10.dp))
         }
     }
 }
@@ -180,7 +185,7 @@ fun VerificationCodeInput(viewModel: PhoneAuthViewModel) {
         OutlinedTextField(
             value = verificationCode,
             onValueChange = { code -> viewModel.updateVerificationCode(code) },
-            label = { Text("Verification Code") },
+            label = { Text("인증번호 입력") },
             modifier = Modifier.fillMaxWidth(),
             isError = verificationCodeError != null,
         )
@@ -199,7 +204,7 @@ fun VerificationCodeInput(viewModel: PhoneAuthViewModel) {
             onClick = { viewModel.verifyCode() },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Verify Code")
+            Text("확인", modifier = Modifier.padding(10.dp))
         }
     }
 }
