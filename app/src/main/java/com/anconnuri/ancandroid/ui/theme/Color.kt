@@ -2,12 +2,15 @@ package com.anconnuri.ancandroid.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val primaryLight = Color(0xFF4B662C)
-val onPrimaryLight = Color(0xFFFFFFFF)
-val primaryContainerLight = Color(0xFFCCEDA4)
-val onPrimaryContainerLight = Color(0xFF0F2000)
-val secondaryLight = Color(0xFF405F90)
-val onSecondaryLight = Color(0xFFFFFFFF)
+val customBlue = Color(0xFF0054A7)
+val lightCustomBlue = Color(0xFF82B4FF)
+
+val primaryLight = customBlue
+val onPrimaryLight = Color.White
+val primaryContainerLight = lightCustomBlue
+val onPrimaryContainerLight = customBlue
+val secondaryLight = Color.Black
+val onSecondaryLight = Color.White
 val secondaryContainerLight = Color(0xFFD6E3FF)
 val onSecondaryContainerLight = Color(0xFF001B3E)
 val tertiaryLight = Color(0xFF006874)
@@ -110,14 +113,14 @@ val surfaceContainerLightHighContrast = Color(0xFFEDEFE4)
 val surfaceContainerHighLightHighContrast = Color(0xFFE8E9DE)
 val surfaceContainerHighestLightHighContrast = Color(0xFFE2E3D8)
 
-val primaryDark = Color(0xFFB0D18B)
-val onPrimaryDark = Color(0xFF1E3702)
-val primaryContainerDark = Color(0xFF344E17)
-val onPrimaryContainerDark = Color(0xFFCCEDA4)
-val secondaryDark = Color(0xFFA9C7FF)
-val onSecondaryDark = Color(0xFF09305F)
-val secondaryContainerDark = Color(0xFF274777)
-val onSecondaryContainerDark = Color(0xFFD6E3FF)
+val primaryDark = lightCustomBlue
+val onPrimaryDark = Color.Black
+val primaryContainerDark = lightCustomBlue.copy(alpha = 0.12f)
+val onPrimaryContainerDark = lightCustomBlue
+val secondaryDark = Color.White
+val onSecondaryDark = Color.Black
+val secondaryContainerDark = Color(0xFF004881)
+val onSecondaryContainerDark = Color(0xFFD1E4FF)
 val tertiaryDark = Color(0xFF82D3E0)
 val onTertiaryDark = Color(0xFF00363D)
 val tertiaryContainerDark = Color(0xFF004F58)

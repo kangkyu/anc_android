@@ -86,8 +86,8 @@ fun ChurchBottomNavigationBar(
             },
             icon = {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_info_selected),
-                    contentDescription = "Login Icon"
+                    painter = painterResource(id = R.drawable.ic_prayers),
+                    contentDescription = "Prayer Icon"
                 )
             },
             label = {

@@ -17,13 +17,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-val customBlue = Color(0xFF0054A7)
-
 private val lightScheme = lightColorScheme(
-    primary = customBlue,
-    onPrimary = Color.White,
-    primaryContainer = customBlue.copy(alpha = 0.12f),
-    onPrimaryContainer = customBlue,
+    primary = primaryLight,
+    onPrimary = onPrimaryLight,
+    primaryContainer = primaryContainerLight,
+    onPrimaryContainer = onPrimaryContainerLight,
     secondary = secondaryLight,
     onSecondary = onSecondaryLight,
     secondaryContainer = secondaryContainerLight,
@@ -58,10 +56,10 @@ private val lightScheme = lightColorScheme(
 )
 
 private val darkScheme = darkColorScheme(
-    primary = customBlue.copy(alpha = 0.8f),
-    onPrimary = Color.White,
-    primaryContainer = customBlue.copy(alpha = 0.16f),
-    onPrimaryContainer = customBlue.copy(alpha = 0.8f),
+    primary = primaryDark,
+    onPrimary = onPrimaryDark,
+    primaryContainer = primaryContainerDark,
+    onPrimaryContainer = onPrimaryContainerDark,
     secondary = secondaryDark,
     onSecondary = onSecondaryDark,
     secondaryContainer = secondaryContainerDark,
